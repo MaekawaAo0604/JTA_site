@@ -80,7 +80,7 @@ export async function registerMember(
     // エラーハンドリング
     if (error instanceof ZodError) {
       // Zodエラーの詳細を返す
-      const fieldErrors = error.errors.map((e) => ({
+      const fieldErrors = error.issues.map((e) => ({
         field: e.path.join('.'),
         message: e.message,
       }));
