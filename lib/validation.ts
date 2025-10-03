@@ -12,10 +12,10 @@ export const MemberFormSchema = z.object({
     .min(13, '年齢は13歳から120歳の間で入力してください')
     .max(120, '年齢は13歳から120歳の間で入力してください'),
   gender: z.enum(['男性', '女性', 'その他'], {
-    errorMap: () => ({ message: '性別を選択してください' }),
+    message: '性別を選択してください',
   }),
   hairType: z.enum(['直毛', 'くせ毛', 'その他'], {
-    errorMap: () => ({ message: '髪質を選択してください' }),
+    message: '髪質を選択してください',
   }),
   agreeToPrivacy: z
     .boolean()
