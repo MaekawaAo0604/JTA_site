@@ -1,32 +1,23 @@
 'use client';
 
-import { useEffect } from 'react';
-
-export default function Error({
-  error,
-  reset,
-}: {
+interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+}
 
+export default function Error({ error, reset }: ErrorProps) {
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="max-w-2xl mx-auto card-official text-center">
-        <h2 className="text-2xl font-bold text-navy mb-4">
-          エラーが発生しました
-        </h2>
-        <p className="text-gray-600 mb-6">
-          申し訳ございません。予期しないエラーが発生しました。
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="card-official max-w-md w-full text-center space-y-6">
+        <h1 className="text-4xl font-bold text-navy">エラーが発生しました</h1>
+        <p className="text-gray-600">
+          申し訳ございません。問題が発生しました。
         </p>
-        <button
-          onClick={reset}
-          className="btn-primary"
-        >
-          もう一度試す
+        {error.digest && (
+          <p className="text-sm text-gray-500">エラーID: {error.digest}</p>
+        )}
+        <button onClick={reset} className="btn-primary">
+          再試行
         </button>
       </div>
     </div>
