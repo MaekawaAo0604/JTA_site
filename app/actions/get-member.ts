@@ -24,13 +24,25 @@ export async function getMemberById(
     const doc = snapshot.docs[0];
     const data = doc.data();
 
+    // 型安全性のためのバリデーション
+    if (
+      typeof data.email !== 'string' ||
+      typeof data.age !== 'number' ||
+      !['男性', '女性', 'その他'].includes(data.gender) ||
+      !['直毛', 'くせ毛', 'その他'].includes(data.hairType) ||
+      typeof data.memberId !== 'string'
+    ) {
+      console.error('Invalid member data format:', data);
+      return null;
+    }
+
     return {
       id: doc.id,
       name: data.name || null,
       email: data.email,
       age: data.age,
-      gender: data.gender,
-      hairType: data.hairType,
+      gender: data.gender as '男性' | '女性' | 'その他',
+      hairType: data.hairType as '直毛' | 'くせ毛' | 'その他',
       memberId: data.memberId,
       issuedAt: data.issuedAt,
     };

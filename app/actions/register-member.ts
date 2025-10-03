@@ -66,6 +66,8 @@ export async function registerMember(
       gender: validated.gender,
       hairType: validated.hairType,
       memberId,
+      agreeToPrivacy: validated.agreeToPrivacy,
+      agreeToPrivacyAt: new Date(),
       issuedAt: new Date(),
     });
 
@@ -77,9 +79,15 @@ export async function registerMember(
   } catch (error) {
     // エラーハンドリング
     if (error instanceof ZodError) {
+      // Zodエラーの詳細を返す
+      const fieldErrors = error.errors.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+
       return {
         success: false,
-        error: 'バリデーションエラー',
+        error: fieldErrors.map((e) => `${e.field}: ${e.message}`).join(', '),
       };
     }
 
