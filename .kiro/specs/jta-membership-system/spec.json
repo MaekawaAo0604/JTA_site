@@ -1,0 +1,23 @@
+{
+  "feature_name": "jta-membership-system",
+  "project_description": "日本天パ協会の公式サイト - 入会試験から会員証発行までの会員管理システム。真面目な公式団体の外観とネタ要素を組み合わせた体験フロー。Next.js + TypeScript + Firestore構成で、会員数表示、天パ予報マップ自動生成、免許証風会員証発行機能を提供。",
+  "created_at": "2025-10-03T00:00:00Z",
+  "updated_at": "2025-10-03T18:45:00Z",
+  "language": "japanese",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}
