@@ -2,8 +2,7 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// ビルド時やFirebase未設定時のモックデータ
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// Firebase設定チェック
 const hasFirebaseConfig = Boolean(
   process.env.FIREBASE_PROJECT_ID &&
   process.env.FIREBASE_CLIENT_EMAIL &&
