@@ -7,9 +7,12 @@ export default async function MemberCount() {
 
   return (
     <div className="card-official text-center">
-      <h2 className="text-2xl font-bold text-navy mb-4">現在の会員数</h2>
-      <div className="text-6xl font-bold text-gold mb-2">{count.toLocaleString()}</div>
-      <p className="text-gray-600">名の天パ会員が登録しています</p>
+      <h2 className="text-2xl font-semibold text-navy mb-4">現在の会員数</h2>
+      <p className="text-6xl font-bold text-gold mb-2">
+        <span>{count.toLocaleString()}</span>
+        <span className="text-3xl ml-2">名</span>
+      </p>
+      <p className="text-gray-600">の天パ会員が登録しています</p>
     </div>
   );
 }
