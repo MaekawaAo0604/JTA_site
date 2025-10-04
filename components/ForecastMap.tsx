@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { db } from '@/lib/firebase/client';
+import { db } from '@/lib/firebase-client';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function ForecastMap() {
