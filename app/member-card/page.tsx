@@ -17,6 +17,23 @@ const mockMemberData = {
 export default function MemberCardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedImage(event.target?.result as string);
+        // 画像アップロード後、会員証を再生成
+        setTimeout(() => {
+          const canvas = canvasRef.current;
+          if (canvas) generateMemberCard(canvas);
+        }, 100);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const generateMemberCard = (canvas: HTMLCanvasElement) => {
     if (!canvas) return;
@@ -74,19 +91,50 @@ export default function MemberCardPage() {
     ctx.font = '24px sans-serif';
     ctx.fillText('日本天パ協会', 50, 110);
 
-    // 顔写真枠（マスコット画像の代わり）
+    // 顔写真枠
     ctx.fillStyle = '#1E293B';
     ctx.fillRect(50, 150, 180, 220);
     ctx.strokeStyle = '#CDA349';
     ctx.lineWidth = 3;
     ctx.strokeRect(50, 150, 180, 220);
 
-    // マスコット「くるりん」のプレースホルダー
-    ctx.fillStyle = '#CDA349';
-    ctx.font = 'bold 60px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🌀', 140, 270);
-    ctx.textAlign = 'left';
+    // 画像を読み込んで描画
+    const avatarImg = new Image();
+    avatarImg.crossOrigin = 'anonymous';
+    avatarImg.src = uploadedImage || '/images/default-tenpa-avatar.png';
+    avatarImg.onload = () => {
+      // 画像を枠内にフィット
+      const imgAspect = avatarImg.width / avatarImg.height;
+      const frameAspect = 180 / 220;
+      let drawWidth, drawHeight, drawX, drawY;
+
+      if (imgAspect > frameAspect) {
+        // 画像が横長
+        drawHeight = 220;
+        drawWidth = drawHeight * imgAspect;
+        drawX = 50 - (drawWidth - 180) / 2;
+        drawY = 150;
+      } else {
+        // 画像が縦長
+        drawWidth = 180;
+        drawHeight = drawWidth / imgAspect;
+        drawX = 50;
+        drawY = 150 - (drawHeight - 220) / 2;
+      }
+
+      // クリップ領域を設定
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(50, 150, 180, 220);
+      ctx.clip();
+      ctx.drawImage(avatarImg, drawX, drawY, drawWidth, drawHeight);
+      ctx.restore();
+
+      // 枠を再描画
+      ctx.strokeStyle = '#CDA349';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(50, 150, 180, 220);
+    };
 
     // 会員情報
     ctx.fillStyle = '#FFFFFF';
@@ -180,6 +228,31 @@ export default function MemberCardPage() {
         <p className="text-gray-600 text-center">
           あなたの会員証が発行されました。画像をダウンロードしてご利用ください。
         </p>
+      </div>
+
+      {/* 画像アップロード */}
+      <div className="card-official mb-8">
+        <h2 className="text-xl font-bold text-navy mb-4">
+          会員証の写真をアップロード
+        </h2>
+        <div className="flex flex-col items-center space-y-4">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="member-photo-upload"
+          />
+          <label
+            htmlFor="member-photo-upload"
+            className="btn-primary cursor-pointer px-8 py-3"
+          >
+            写真を選択
+          </label>
+          <p className="text-sm text-gray-600">
+            ※ 画像が選択されていない場合はデフォルトの画像が使用されます
+          </p>
+        </div>
       </div>
 
       {/* 会員証プレビュー */}
