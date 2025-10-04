@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { registerMember } from '@/app/actions/register-member';
+import type { MemberFormData } from '@/types/member';
 
 export default function DebugPage() {
   const [testResult, setTestResult] = useState<string>('');
@@ -13,14 +14,16 @@ export default function DebugPage() {
 
     try {
       // テストデータで登録を試行
-      const result = await registerMember({
+      const testData: MemberFormData = {
         name: 'テストユーザー',
-        email: `test-${Date.now()}@example.com`, // ユニークなメール
+        email: `test-${Date.now()}@example.com`,
         age: 25,
         gender: '男性',
         hairType: 'くせ毛',
         agreeToPrivacy: true,
-      });
+      };
+
+      const result = await registerMember(testData);
 
       setTestResult(JSON.stringify(result, null, 2));
     } catch (error) {
@@ -93,7 +96,7 @@ export default function DebugPage() {
 }
 
 function ManualTest() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MemberFormData>({
     name: '',
     email: '',
     age: 0,
@@ -126,7 +129,7 @@ function ManualTest() {
           <label className="block text-sm font-medium mb-1">名前</label>
           <input
             type="text"
-            value={formData.name}
+            value={formData.name || ''}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
