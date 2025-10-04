@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 // モック会員データ（実際はFirestoreから取得）
 const mockMemberData = {
   name: '山田 太郎',
-  memberId: 'JCHA-123456',
+  memberId: 'JTA-123456',
   hairType: 'くせ毛',
   issuedAt: new Date().toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -32,6 +32,33 @@ export default function MemberCardPage() {
     ctx.fillStyle = '#0F172A';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // ロゴ画像を背景に配置（透かし）
+    const logoImg = new Image();
+    logoImg.src = '/images/jta-logo.png';
+    logoImg.onload = () => {
+      ctx.globalAlpha = 0.08;
+      const logoSize = 300;
+      ctx.drawImage(
+        logoImg,
+        canvas.width / 2 - logoSize / 2,
+        canvas.height / 2 - logoSize / 2,
+        logoSize,
+        logoSize
+      );
+      ctx.globalAlpha = 1.0;
+
+      // ロゴ読み込み後、残りの描画を実行
+      drawCardContent(ctx, canvas);
+    };
+
+    // ロゴ読み込みエラー時も描画を続ける
+    logoImg.onerror = () => {
+      drawCardContent(ctx, canvas);
+    };
+  };
+
+  const drawCardContent = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+
     // 金色のボーダー
     ctx.strokeStyle = '#CDA349';
     ctx.lineWidth = 8;
@@ -47,16 +74,12 @@ export default function MemberCardPage() {
     ctx.font = '24px sans-serif';
     ctx.fillText('日本天パ協会', 50, 110);
 
-    // エンブレムエリア（左上に円形のプレースホルダー）
-    ctx.fillStyle = '#CDA349';
-    ctx.beginPath();
-    ctx.arc(700, 100, 60, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#0F172A';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('JCHA', 700, 110);
-    ctx.textAlign = 'left';
+    // エンブレムエリア（右上にロゴ）
+    const logoImgSmall = new Image();
+    logoImgSmall.src = '/images/jta-logo.png';
+    logoImgSmall.onload = () => {
+      ctx.drawImage(logoImgSmall, 680, 40, 120, 120);
+    };
 
     // 顔写真枠（マスコット画像の代わり）
     ctx.fillStyle = '#1E293B';
@@ -133,14 +156,6 @@ export default function MemberCardPage() {
       canvas.height - 30
     );
     ctx.textAlign = 'left';
-
-    // 透かしエンブレム（中央）
-    ctx.globalAlpha = 0.1;
-    ctx.fillStyle = '#CDA349';
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 150, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1.0;
   };
 
   const handleDownload = () => {
@@ -155,7 +170,7 @@ export default function MemberCardPage() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `JCHA-会員証-${mockMemberData.memberId}.png`;
+        link.download = `JTA-会員証-${mockMemberData.memberId}.png`;
         link.click();
         URL.revokeObjectURL(url);
       }
