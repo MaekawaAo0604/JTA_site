@@ -18,16 +18,16 @@ export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
-      <section className="text-center mb-20">
-        <h1 className="text-5xl md:text-7xl font-bold text-gold mb-8 leading-tight">
+      <section className="text-center mb-12 md:mb-20 px-2 md:px-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-gold mb-6 md:mb-8 leading-tight">
           クセは個性、個性は文化。
         </h1>
-        <p className="text-xl md:text-2xl text-white mb-10 font-light leading-relaxed max-w-3xl mx-auto">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-8 md:mb-10 font-light leading-relaxed max-w-3xl mx-auto px-4">
           日本天パ協会は、天然パーマの個性を文化として認め、
-          <br />
+          <br className="hidden sm:block" />
           すべての天パの方々が誇りを持てる社会を目指します。
         </p>
-        <Link href="/join" className="inline-block bg-transparent border-2 border-gold text-gold font-medium px-10 py-4 rounded-lg hover:bg-gold hover:text-navy transition-all duration-300 text-lg">
+        <Link href="/join" className="inline-block bg-transparent border-2 border-gold text-gold font-medium px-6 py-3 sm:px-8 sm:py-3 md:px-10 md:py-4 rounded-lg hover:bg-gold hover:text-navy transition-all duration-300 text-base sm:text-lg">
           入会試験を受ける
         </Link>
       </section>
