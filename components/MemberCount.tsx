@@ -1,5 +1,7 @@
 import { getMemberCount } from '@/lib/actions/members';
 
+export const revalidate = 60; // 60秒間キャッシュ
+
 export default async function MemberCount() {
   const count = await getMemberCount();
 
