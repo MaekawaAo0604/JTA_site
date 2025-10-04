@@ -1,0 +1,32 @@
+<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="800" height="450" fill="#0F172A"/>
+
+  <!-- 金のボーダー -->
+  <rect x="10" y="10" width="780" height="430" fill="none" stroke="#CDA349" stroke-width="2"/>
+
+  <!-- タイトル -->
+  <text x="400" y="80" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#CDA349" text-anchor="middle">
+    本日の天パ天気予報
+  </text>
+
+  <!-- 説明文 -->
+  <text x="400" y="200" font-family="Arial, sans-serif" font-size="24" fill="#CDA349" text-anchor="middle">
+    予報画像準備中
+  </text>
+
+  <text x="400" y="240" font-family="Arial, sans-serif" font-size="18" fill="#A1A1AA" text-anchor="middle">
+    近日公開予定
+  </text>
+
+  <!-- デコレーション -->
+  <circle cx="400" cy="300" r="60" fill="none" stroke="#CDA349" stroke-width="2" opacity="0.3"/>
+  <path d="M 400 240 Q 420 260 400 280 Q 380 260 400 240" fill="#CDA349" opacity="0.5"/>
+  <path d="M 420 250 Q 440 270 420 290" fill="#CDA349" opacity="0.4"/>
+  <path d="M 380 250 Q 360 270 380 290" fill="#CDA349" opacity="0.4"/>
+
+  <!-- フッター -->
+  <text x="400" y="410" font-family="Arial, sans-serif" font-size="14" fill="#A1A1AA" text-anchor="middle">
+    日本天パ協会 | 天パ爆発指数マップ
+  </text>
+</svg>

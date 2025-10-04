@@ -6,8 +6,8 @@ export default async function ForecastMap() {
 
   return (
     <div className="card-official">
-      <h2 className="text-2xl font-bold text-navy mb-4">本日の天パ天気予報</h2>
-      <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden">
+      <h2 className="text-2xl font-semibold text-navy mb-4">天パ天気予報</h2>
+      <div className="relative w-full aspect-[16/9] bg-navy/5 rounded-lg overflow-hidden border border-gray-200">
         <Image
           src={imageUrl}
           alt="天パ天気予報マップ"

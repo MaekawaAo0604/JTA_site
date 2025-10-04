@@ -23,7 +23,7 @@ export default function Footer() {
 
           {/* 著作権表示 */}
           <p className="text-gold/60 text-sm text-center">
-            © 2025 日本天パ協会. All rights reserved.
+            © 2025 日本天パ協会 (tenpa.org). All rights reserved.
           </p>
         </div>
       </div>
