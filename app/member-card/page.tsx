@@ -24,18 +24,17 @@ export default function MemberCardPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
-        // 画像アップロード後、会員証を再生成
-        setTimeout(() => {
-          const canvas = canvasRef.current;
-          if (canvas) generateMemberCard(canvas);
-        }, 100);
+        const imageUrl = event.target?.result as string;
+        setUploadedImage(imageUrl);
+        // 画像アップロード後、会員証を即座に再生成（新しい画像URLを直接渡す）
+        const canvas = canvasRef.current;
+        if (canvas) generateMemberCard(canvas, imageUrl);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const generateMemberCard = (canvas: HTMLCanvasElement) => {
+  const generateMemberCard = (canvas: HTMLCanvasElement, customImageUrl?: string) => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -65,16 +64,19 @@ export default function MemberCardPage() {
       ctx.globalAlpha = 1.0;
 
       // ロゴ読み込み後、残りの描画を実行
-      drawCardContent(ctx, canvas);
+      drawCardContent(ctx, canvas, customImageUrl);
     };
 
     // ロゴ読み込みエラー時も描画を続ける
     logoImg.onerror = () => {
-      drawCardContent(ctx, canvas);
+      drawCardContent(ctx, canvas, customImageUrl);
     };
+
+    // ロゴ画像の読み込みを開始
+    drawCardContent(ctx, canvas, customImageUrl);
   };
 
-  const drawCardContent = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+  const drawCardContent = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customImageUrl?: string) => {
 
     // 金色のボーダー
     ctx.strokeStyle = '#CDA349';
@@ -98,10 +100,10 @@ export default function MemberCardPage() {
     ctx.lineWidth = 3;
     ctx.strokeRect(50, 150, 180, 220);
 
-    // 画像を読み込んで描画
+    // 画像を読み込んで描画（customImageUrlが渡されていればそれを使用、なければuploadedImageを使用）
     const avatarImg = new Image();
     avatarImg.crossOrigin = 'anonymous';
-    avatarImg.src = uploadedImage || '/images/default-tenpa-avatar.png';
+    avatarImg.src = customImageUrl || uploadedImage || '/images/default-tenpa-avatar.png';
     avatarImg.onload = () => {
       // 画像を枠内にフィット
       const imgAspect = avatarImg.width / avatarImg.height;
