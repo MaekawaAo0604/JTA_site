@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 // モック会員データ（実際はFirestoreから取得）
 const mockMemberData = {
@@ -18,12 +18,7 @@ export default function MemberCardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    generateMemberCard();
-  }, []);
-
-  const generateMemberCard = () => {
-    const canvas = canvasRef.current;
+  const generateMemberCard = (canvas: HTMLCanvasElement) => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -183,7 +178,12 @@ export default function MemberCardPage() {
       <div className="card-official mb-8">
         <div className="flex justify-center">
           <canvas
-            ref={canvasRef}
+            ref={(el) => {
+              if (el && canvasRef.current !== el) {
+                canvasRef.current = el;
+                generateMemberCard(el);
+              }
+            }}
             className="border-4 border-gold rounded-lg shadow-2xl max-w-full h-auto"
             style={{ maxWidth: '856px' }}
           />
