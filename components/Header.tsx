@@ -29,8 +29,8 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-3 md:py-4">
           {/* エンブレムとサイト名 */}
-          <Link href="/" className="flex items-center gap-2 md:gap-3" onClick={closeMobileMenu}>
-            <div className="relative w-12 h-12 md:w-16 md:h-16">
+          <Link href="/" className="flex items-center gap-2 md:gap-3 shrink-0" onClick={closeMobileMenu}>
+            <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
               <Image
                 src="/images/jta-logo.png"
                 alt="日本天パ協会ロゴ"
@@ -39,7 +39,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <h1 className="text-gold text-base md:text-xl font-bold">日本天パ協会</h1>
+            <h1 className="text-gold text-base md:text-xl font-bold whitespace-nowrap">日本天パ協会</h1>
           </Link>
 
           {/* デスクトップナビゲーション */}
