@@ -1,24 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --navy: #0F172A;
-  --gold: #CDA349;
-}
-
 body {
-  background: var(--navy);
-  color: var(--foreground);
+  background: #0F172A;
+  color: #171717;
   font-family: 'Noto Sans JP', sans-serif;
 }
 
 @layer components {
-  /* 官公庁風カスタムクラス */
   .card-official {
     @apply bg-white rounded-lg shadow-md p-6;
   }
