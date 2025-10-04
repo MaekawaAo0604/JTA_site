@@ -94,16 +94,30 @@ export async function registerMember(
         message: e.message,
       }));
 
+      console.error('Zod validation error:', fieldErrors);
       return {
         success: false,
-        error: fieldErrors.map((e) => `${e.field}: ${e.message}`).join(', '),
+        error: `バリデーションエラー: ${fieldErrors.map((e) => `${e.field}: ${e.message}`).join(', ')}`,
       };
     }
 
-    console.error('Registration error:', error);
+    // 詳細なエラーログ
+    console.error('Registration error details:', {
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      formData: {
+        email: formData.email,
+        hasName: !!formData.name,
+        age: formData.age,
+        gender: formData.gender,
+        hairType: formData.hairType,
+      },
+    });
+
     return {
       success: false,
-      error: '登録に失敗しました',
+      error: `登録に失敗しました: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }
