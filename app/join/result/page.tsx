@@ -62,6 +62,14 @@ export default function ResultPage() {
       if (result.success && result.memberId) {
         setMemberId(result.memberId);
         setRegistrationComplete(true);
+
+        // 会員情報をlocalStorageに保存
+        localStorage.setItem('memberData', JSON.stringify({
+          name: formData.name || '会員',
+          memberId: result.memberId,
+          hairType: formData.hairType,
+          email: formData.email,
+        }));
       } else {
         setError(result.error || '登録に失敗しました');
       }

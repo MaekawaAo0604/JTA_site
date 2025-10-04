@@ -1,19 +1,41 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export default function MemberCardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [memberName, setMemberName] = useState('山田 太郎');
-  const [memberId, setMemberId] = useState('JTA-123456');
+  const [memberName, setMemberName] = useState('');
+  const [memberId, setMemberId] = useState('');
   const [hairType, setHairType] = useState('くせ毛');
+  const [isLoaded, setIsLoaded] = useState(false);
   const issuedAt = new Date().toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  // localStorageから会員情報を読み込む
+  useEffect(() => {
+    const savedData = localStorage.getItem('memberData');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        setMemberName(data.name || '会員');
+        setMemberId(data.memberId || 'JTA-000000');
+        setHairType(data.hairType || 'くせ毛');
+      } catch (error) {
+        console.error('Failed to parse member data:', error);
+        setMemberName('会員');
+        setMemberId('JTA-000000');
+      }
+    } else {
+      setMemberName('会員');
+      setMemberId('JTA-000000');
+    }
+    setIsLoaded(true);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
