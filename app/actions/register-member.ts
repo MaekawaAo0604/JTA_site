@@ -38,6 +38,15 @@ export async function registerMember(
   formData: MemberFormData
 ): Promise<RegisterMemberResult> {
   try {
+    // 0. Firebase接続チェック
+    if (!adminDb) {
+      console.error('Firebase Admin SDK is not initialized');
+      return {
+        success: false,
+        error: 'データベース接続エラー。環境変数を確認してください。',
+      };
+    }
+
     // 1. Zodバリデーション
     const validated = MemberFormSchema.parse(formData);
 

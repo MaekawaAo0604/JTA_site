@@ -24,18 +24,17 @@ const news = [
 export default function NewsSection() {
   return (
     <div className="card-official">
-      <h2 className="text-2xl font-bold text-navy mb-6">お知らせ</h2>
+      <h2 className="text-2xl font-semibold text-navy mb-6">お知らせ</h2>
       <div className="space-y-4">
         {news.map((item) => (
-          <Link
+          <div
             key={item.id}
-            href={`/news/${item.id}`}
-            className="block p-4 rounded-lg border border-gray-200 hover:border-gold hover:shadow-md transition-all"
+            className="block p-4 rounded-lg border border-gray-200"
           >
             <time className="text-sm text-gray-500">{item.date}</time>
-            <h3 className="text-lg font-bold text-navy mt-1">{item.title}</h3>
+            <h3 className="text-lg font-semibold text-navy mt-1">{item.title}</h3>
             <p className="text-gray-600 mt-2">{item.excerpt}</p>
-          </Link>
+          </div>
         ))}
       </div>
     </div>
