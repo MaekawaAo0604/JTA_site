@@ -74,13 +74,6 @@ export default function MemberCardPage() {
     ctx.font = '24px sans-serif';
     ctx.fillText('日本天パ協会', 50, 110);
 
-    // エンブレムエリア（右上にロゴ）
-    const logoImgSmall = new Image();
-    logoImgSmall.src = '/images/jta-logo.png';
-    logoImgSmall.onload = () => {
-      ctx.drawImage(logoImgSmall, 680, 40, 120, 120);
-    };
-
     // 顔写真枠（マスコット画像の代わり）
     ctx.fillStyle = '#1E293B';
     ctx.fillRect(50, 150, 180, 220);
