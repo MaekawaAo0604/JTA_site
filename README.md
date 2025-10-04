@@ -97,13 +97,11 @@ Vercel が自動的にデプロイを開始します。
   /join           # 入会試験・登録フォーム
   /member-card    # 会員証発行
   /about          # 協会情報
-  /forecast       # 天パ予報
-  /articles       # 記事一覧
-  /contact        # お問い合わせ
 /components       # Reactコンポーネント
 /lib              # ユーティリティ関数・Firebase設定
 /public           # 静的ファイル
   /forecast       # 天パ予報マップ画像
+  /images         # 画像ファイル
 /types            # TypeScript型定義
 ```
 
