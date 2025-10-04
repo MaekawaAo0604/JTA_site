@@ -2,22 +2,18 @@
 
 import { useRef, useState } from 'react';
 
-// モック会員データ（実際はFirestoreから取得）
-const mockMemberData = {
-  name: '山田 太郎',
-  memberId: 'JTA-123456',
-  hairType: 'くせ毛',
-  issuedAt: new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }),
-};
-
 export default function MemberCardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [memberName, setMemberName] = useState('山田 太郎');
+  const [memberId, setMemberId] = useState('JTA-123456');
+  const [hairType, setHairType] = useState('くせ毛');
+  const issuedAt = new Date().toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,16 +131,23 @@ export default function MemberCardPage() {
       ctx.strokeRect(50, 150, 180, 220);
 
       // 画像読み込み後に会員情報を描画
-      drawMemberInfo(ctx, canvas);
+      drawMemberInfo(ctx, canvas, memberName, memberId, hairType, issuedAt);
     };
 
     // 画像読み込みエラー時も会員情報を描画
     avatarImg.onerror = () => {
-      drawMemberInfo(ctx, canvas);
+      drawMemberInfo(ctx, canvas, memberName, memberId, hairType, issuedAt);
     };
   };
 
-  const drawMemberInfo = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+  const drawMemberInfo = (
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    name: string,
+    id: string,
+    hair: string,
+    issued: string
+  ) => {
     // 会員情報
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '20px sans-serif';
@@ -158,7 +161,7 @@ export default function MemberCardPage() {
     ctx.fillText('氏名', infoX, infoY);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '24px sans-serif';
-    ctx.fillText(mockMemberData.name || '（未登録）', infoX + 120, infoY);
+    ctx.fillText(name || '（未登録）', infoX + 120, infoY);
     infoY += lineHeight;
 
     // 会員番号
@@ -167,7 +170,7 @@ export default function MemberCardPage() {
     ctx.fillText('会員番号', infoX, infoY);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '24px sans-serif';
-    ctx.fillText(mockMemberData.memberId, infoX + 120, infoY);
+    ctx.fillText(id, infoX + 120, infoY);
     infoY += lineHeight;
 
     // 発行日
@@ -176,7 +179,7 @@ export default function MemberCardPage() {
     ctx.fillText('発行日', infoX, infoY);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '20px sans-serif';
-    ctx.fillText(mockMemberData.issuedAt, infoX + 120, infoY);
+    ctx.fillText(issued, infoX + 120, infoY);
     infoY += lineHeight;
 
     // 髪質
@@ -185,7 +188,7 @@ export default function MemberCardPage() {
     ctx.fillText('髪質', infoX, infoY);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '24px sans-serif';
-    ctx.fillText(mockMemberData.hairType, infoX + 120, infoY);
+    ctx.fillText(hair, infoX + 120, infoY);
     infoY += lineHeight;
 
     // 有効期限
@@ -220,7 +223,7 @@ export default function MemberCardPage() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `JTA-会員証-${mockMemberData.memberId}.png`;
+        link.download = `JTA-会員証-${memberId}.png`;
         link.click();
         URL.revokeObjectURL(url);
       }
@@ -237,6 +240,73 @@ export default function MemberCardPage() {
         <p className="text-gray-600 text-center">
           あなたの会員証が発行されました。画像をダウンロードしてご利用ください。
         </p>
+      </div>
+
+      {/* 会員情報入力 */}
+      <div className="card-official mb-8">
+        <h2 className="text-xl font-bold text-navy mb-4">会員情報</h2>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="memberName" className="block text-sm font-medium text-gray-700 mb-1">
+              氏名
+            </label>
+            <input
+              type="text"
+              id="memberName"
+              value={memberName}
+              onChange={(e) => {
+                setMemberName(e.target.value);
+                setTimeout(() => {
+                  const canvas = canvasRef.current;
+                  if (canvas) generateMemberCard(canvas);
+                }, 100);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+              placeholder="山田 太郎"
+            />
+          </div>
+          <div>
+            <label htmlFor="memberId" className="block text-sm font-medium text-gray-700 mb-1">
+              会員番号
+            </label>
+            <input
+              type="text"
+              id="memberId"
+              value={memberId}
+              onChange={(e) => {
+                setMemberId(e.target.value);
+                setTimeout(() => {
+                  const canvas = canvasRef.current;
+                  if (canvas) generateMemberCard(canvas);
+                }, 100);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+              placeholder="JTA-123456"
+            />
+          </div>
+          <div>
+            <label htmlFor="hairType" className="block text-sm font-medium text-gray-700 mb-1">
+              髪質
+            </label>
+            <select
+              id="hairType"
+              value={hairType}
+              onChange={(e) => {
+                setHairType(e.target.value);
+                setTimeout(() => {
+                  const canvas = canvasRef.current;
+                  if (canvas) generateMemberCard(canvas);
+                }, 100);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+            >
+              <option value="くせ毛">くせ毛</option>
+              <option value="天然パーマ">天然パーマ</option>
+              <option value="ストレート">ストレート</option>
+              <option value="ウェーブ">ウェーブ</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* 画像アップロード */}
