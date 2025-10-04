@@ -71,9 +71,6 @@ export default function MemberCardPage() {
     logoImg.onerror = () => {
       drawCardContent(ctx, canvas, customImageUrl);
     };
-
-    // ロゴ画像の読み込みを開始
-    drawCardContent(ctx, canvas, customImageUrl);
   };
 
   const drawCardContent = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customImageUrl?: string) => {
