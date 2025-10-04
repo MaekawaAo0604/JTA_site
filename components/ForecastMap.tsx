@@ -1,16 +1,20 @@
 import Image from 'next/image';
 
 export default function ForecastMap() {
+  // Firebase Storageの公開URLを使用
+  const forecastImageUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/o/forecast%2Flatest.png?alt=media&t=${Date.now()}`;
+
   return (
     <div className="card-official">
       <h2 className="text-2xl font-bold text-navy mb-4">本日の天パ天気予報</h2>
       <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden">
         <Image
-          src="/forecast/latest.png"
+          src={forecastImageUrl}
           alt="天パ天気予報マップ"
           fill
           className="object-contain"
           priority
+          unoptimized
         />
       </div>
       <p className="text-sm text-gray-600 mt-4 text-center">
