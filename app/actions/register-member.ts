@@ -6,7 +6,7 @@ import type { MemberFormData, RegisterMemberResult } from '@/types/member';
 import { ZodError } from 'zod';
 
 /**
- * 会員番号生成（JCHA-XXXXXX形式、6桁ランダム数字）
+ * 会員番号生成（JTA-XXXXXX形式、6桁ランダム数字）
  * ユニークチェック付き（最大10回リトライ）
  */
 async function generateUniqueMemberId(): Promise<string> {
@@ -14,7 +14,7 @@ async function generateUniqueMemberId(): Promise<string> {
 
   for (let i = 0; i < maxRetries; i++) {
     const randomNumber = Math.floor(Math.random() * 900000) + 100000; // 100000-999999
-    const memberId = `JCHA-${randomNumber}`;
+    const memberId = `JTA-${randomNumber}`;
 
     // Firestoreでユニークチェック
     const snapshot = await adminDb
