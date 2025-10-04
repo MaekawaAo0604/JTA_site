@@ -134,8 +134,18 @@ export default function MemberCardPage() {
       ctx.strokeStyle = '#CDA349';
       ctx.lineWidth = 3;
       ctx.strokeRect(50, 150, 180, 220);
+
+      // 画像読み込み後に会員情報を描画
+      drawMemberInfo(ctx, canvas);
     };
 
+    // 画像読み込みエラー時も会員情報を描画
+    avatarImg.onerror = () => {
+      drawMemberInfo(ctx, canvas);
+    };
+  };
+
+  const drawMemberInfo = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     // 会員情報
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '20px sans-serif';
