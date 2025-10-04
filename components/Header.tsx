@@ -8,12 +8,13 @@ export default function Header() {
         <div className="flex items-center justify-between py-4">
           {/* エンブレムとサイト名 */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="relative w-12 h-12">
+            <div className="relative w-16 h-16">
               <Image
-                src="/images/emblem.png"
-                alt="日本天パ協会エンブレム"
+                src="/images/jta-logo.png"
+                alt="日本天パ協会ロゴ"
                 fill
                 className="object-contain"
+                priority
               />
             </div>
             <h1 className="text-gold text-xl font-bold">日本天パ協会</h1>
