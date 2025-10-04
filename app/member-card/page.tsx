@@ -37,6 +37,13 @@ export default function MemberCardPage() {
     setIsLoaded(true);
   }, []);
 
+  // データ読み込み完了後にCanvasを初期描画
+  useEffect(() => {
+    if (isLoaded && canvasRef.current) {
+      generateMemberCard(canvasRef.current);
+    }
+  }, [isLoaded, memberName, memberId, hairType]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -360,12 +367,7 @@ export default function MemberCardPage() {
       <div className="card-official mb-8">
         <div className="flex justify-center">
           <canvas
-            ref={(el) => {
-              if (el && canvasRef.current !== el) {
-                canvasRef.current = el;
-                generateMemberCard(el);
-              }
-            }}
+            ref={canvasRef}
             className="border-4 border-gold rounded-lg shadow-2xl max-w-full h-auto"
             style={{ maxWidth: '856px' }}
           />
