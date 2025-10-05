@@ -283,13 +283,7 @@ export default function MemberCardPage() {
               type="text"
               id="memberName"
               value={memberName}
-              onChange={(e) => {
-                setMemberName(e.target.value);
-                setTimeout(() => {
-                  const canvas = canvasRef.current;
-                  if (canvas) generateMemberCard(canvas);
-                }, 100);
-              }}
+              onChange={(e) => setMemberName(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
               placeholder="山田 太郎"
             />
@@ -302,13 +296,7 @@ export default function MemberCardPage() {
               type="text"
               id="memberId"
               value={memberId}
-              onChange={(e) => {
-                setMemberId(e.target.value);
-                setTimeout(() => {
-                  const canvas = canvasRef.current;
-                  if (canvas) generateMemberCard(canvas);
-                }, 100);
-              }}
+              onChange={(e) => setMemberId(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
               placeholder="JTA-123456"
             />
@@ -320,13 +308,7 @@ export default function MemberCardPage() {
             <select
               id="hairType"
               value={hairType}
-              onChange={(e) => {
-                setHairType(e.target.value);
-                setTimeout(() => {
-                  const canvas = canvasRef.current;
-                  if (canvas) generateMemberCard(canvas);
-                }, 100);
-              }}
+              onChange={(e) => setHairType(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
             >
               <option value="くせ毛">くせ毛</option>
