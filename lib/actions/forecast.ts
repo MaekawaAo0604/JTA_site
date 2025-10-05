@@ -3,9 +3,11 @@
 import { adminDb } from '@/lib/firebase';
 
 export async function getForecastImageUrl(): Promise<string> {
+  const defaultImageUrl = 'https://raw.githubusercontent.com/MaekawaAo0604/tenpayoho/gh-pages/forecast/latest.png';
+
   try {
     if (!adminDb) {
-      return '/forecast/latest.png';
+      return defaultImageUrl;
     }
 
     const forecastDoc = await adminDb
@@ -14,13 +16,13 @@ export async function getForecastImageUrl(): Promise<string> {
       .get();
 
     if (!forecastDoc.exists) {
-      return '/forecast/latest.png';
+      return defaultImageUrl;
     }
 
     const data = forecastDoc.data();
-    return data?.imageUrl || '/forecast/latest.png';
+    return data?.imageUrl || defaultImageUrl;
   } catch (error) {
     console.error('Failed to get forecast image URL:', error);
-    return '/forecast/latest.png';
+    return defaultImageUrl;
   }
 }
