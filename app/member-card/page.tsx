@@ -260,17 +260,99 @@ export default function MemberCardPage() {
     }, 'image/png');
   };
 
-  const handleShareTwitter = () => {
-    const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n#日本天パ協会 #天パ`;
-    const url = encodeURIComponent(window.location.origin);
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-    window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+  const handleShareTwitter = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      // Canvasから画像を生成
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png');
+      });
+
+      if (!blob) {
+        alert('画像の生成に失敗しました');
+        return;
+      }
+
+      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n#日本天パ協会 #天パ`;
+
+      // Web Share API対応チェック（モバイル向け）
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `JTA-会員証-${memberId}.png`, { type: 'image/png' });
+        const shareData = {
+          text: text,
+          files: [file],
+        };
+
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      }
+
+      // Web Share API非対応の場合はテキストのみでX（Twitter）を開く
+      const url = encodeURIComponent(window.location.origin);
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+      window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+
+      // 画像を別途ダウンロード
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `JTA-会員証-${memberId}.png`;
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+
+      alert('画像をダウンロードしました。Xの投稿画面で画像を添付してください。');
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
   };
 
-  const handleShareInstagram = () => {
-    // Instagramは直接共有APIがないため、ダウンロードを促す
-    handleDownload();
-    alert('会員証をダウンロードしました。Instagramアプリから画像を選択して投稿してください。');
+  const handleShareInstagram = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      // Canvasから画像を生成
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png');
+      });
+
+      if (!blob) {
+        alert('画像の生成に失敗しました');
+        return;
+      }
+
+      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n#日本天パ協会 #天パ`;
+
+      // Web Share API対応チェック（モバイル向け）
+      if (navigator.share) {
+        const file = new File([blob], `JTA-会員証-${memberId}.png`, { type: 'image/png' });
+        const shareData = {
+          text: text,
+          files: [file],
+        };
+
+        if (navigator.canShare && navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      }
+
+      // Web Share API非対応の場合は画像をダウンロード
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `JTA-会員証-${memberId}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      alert('会員証をダウンロードしました。Instagramアプリから画像を選択して投稿してください。');
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
   };
 
   return (
