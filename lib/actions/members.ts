@@ -1,13 +1,13 @@
 'use server';
 
-import { adminDb } from '@/lib/firebase';
+import { db } from '@/lib/firebase-admin';
 
 export async function getMemberCount(): Promise<number> {
   try {
-    if (!adminDb) {
+    if (!db) {
       return 0; // Firebase未設定時は0を返す
     }
-    const membersSnapshot = await adminDb
+    const membersSnapshot = await db
       .collection('members')
       .count()
       .get();

@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDb } from '@/lib/firebase';
+import { db } from '@/lib/firebase-admin';
 
 /**
  * 会員数取得 Server Action
@@ -8,7 +8,7 @@ import { adminDb } from '@/lib/firebase';
  */
 export async function getMemberCount(): Promise<number> {
   try {
-    const snapshot = await adminDb.collection('members').count().get();
+    const snapshot = await db.collection('members').count().get();
     return snapshot.data().count;
   } catch (error) {
     console.error('Get member count error:', error);
@@ -19,5 +19,5 @@ export async function getMemberCount(): Promise<number> {
 // フェーズ2（パフォーマンス最適化 - 将来実装）
 // 将来的には aggregates/memberCount ドキュメントを使用
 // Cloud Functions で members 作成・削除時に更新
-// const countDoc = await adminDb.collection('aggregates').doc('memberCount').get();
+// const countDoc = await db.collection('aggregates').doc('memberCount').get();
 // return countDoc.data()?.count ?? 0;

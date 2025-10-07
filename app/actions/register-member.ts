@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDb } from '@/lib/firebase';
+import { db } from '@/lib/firebase-admin';
 import { MemberFormSchema } from '@/lib/validation';
 import type { MemberFormData, RegisterMemberResult } from '@/types/member';
 import { ZodError } from 'zod';
@@ -18,7 +18,10 @@ async function generateUniqueMemberId(): Promise<string> {
     const memberId = `JTA-${randomNumber}`;
 
     // Firestoreでユニークチェック
-    const snapshot = await adminDb
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    const snapshot = await db
       .collection('members')
       .where('memberId', '==', memberId)
       .limit(1)
@@ -40,7 +43,7 @@ export async function registerMember(
 ): Promise<RegisterMemberResult> {
   try {
     // 0. Firebase接続チェック
-    if (!adminDb) {
+    if (!db) {
       console.error('Firebase Admin SDK is not initialized');
       return {
         success: false,
@@ -52,7 +55,7 @@ export async function registerMember(
     const validated = MemberFormSchema.parse(formData);
 
     // 2. メール重複チェック
-    const emailSnapshot = await adminDb
+    const emailSnapshot = await db
       .collection('members')
       .where('email', '==', validated.email)
       .limit(1)
@@ -88,7 +91,7 @@ export async function registerMember(
     }
 
     // 5. Firestore members コレクションに保存
-    await adminDb.collection('members').add({
+    await db.collection('members').add({
       uid,
       name: validated.name || null,
       email: validated.email,

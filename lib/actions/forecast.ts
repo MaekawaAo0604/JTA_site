@@ -1,16 +1,16 @@
 'use server';
 
-import { adminDb } from '@/lib/firebase';
+import { db } from '@/lib/firebase-admin';
 
 export async function getForecastImageUrl(): Promise<string> {
   const defaultImageUrl = 'https://raw.githubusercontent.com/MaekawaAo0604/tenpayoho/gh-pages/forecast/latest.png';
 
   try {
-    if (!adminDb) {
+    if (!db) {
       return defaultImageUrl;
     }
 
-    const forecastDoc = await adminDb
+    const forecastDoc = await db
       .collection('config')
       .doc('forecast')
       .get();

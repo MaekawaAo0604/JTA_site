@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDb } from '@/lib/firebase';
+import { db } from '@/lib/firebase-admin';
 import type { Member } from '@/types/member';
 
 /**
@@ -11,7 +11,7 @@ export async function getMemberById(
   memberId: string
 ): Promise<Member | null> {
   try {
-    const snapshot = await adminDb
+    const snapshot = await db
       .collection('members')
       .where('memberId', '==', memberId)
       .limit(1)
