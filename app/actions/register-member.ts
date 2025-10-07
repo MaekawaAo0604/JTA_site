@@ -75,6 +75,11 @@ export async function registerMember(
     const initialPassword = memberId.split('-')[1]; // JTA-123456 → 123456
     let uid: string;
 
+    console.log('=== Firebase Auth User Creation Debug ===');
+    console.log('Attempting to create user with email:', validated.email);
+    console.log('Initial password:', initialPassword);
+    console.log('Display name:', validated.name || 'undefined');
+
     try {
       const userRecord = await getAuth().createUser({
         email: validated.email,
@@ -82,11 +87,15 @@ export async function registerMember(
         displayName: validated.name || undefined,
       });
       uid = userRecord.uid;
+      console.log('User created successfully with UID:', uid);
     } catch (authError: any) {
       console.error('Firebase Auth user creation failed:', authError);
+      console.error('Error code:', authError.code);
+      console.error('Error message:', authError.message);
+      console.error('Error details:', JSON.stringify(authError, null, 2));
       return {
         success: false,
-        error: 'ユーザー作成に失敗しました',
+        error: `ユーザー作成に失敗しました: ${authError.message || authError.code || '不明なエラー'}`,
       };
     }
 
