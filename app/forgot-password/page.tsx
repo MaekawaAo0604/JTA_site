@@ -16,18 +16,27 @@ export default function ForgotPasswordPage() {
     setError(null);
     setIsSubmitting(true);
 
+    console.log('=== Password Reset Debug ===');
+    console.log('Email:', email);
+    console.log('Auth object:', auth);
+    console.log('Auth app name:', auth?.app?.name);
+
     try {
+      console.log('Calling sendPasswordResetEmail...');
       await sendPasswordResetEmail(auth, email);
+      console.log('Password reset email sent successfully!');
       setSuccess(true);
     } catch (err: any) {
       console.error('Password reset error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
 
       if (err.code === 'auth/user-not-found') {
         setError('このメールアドレスは登録されていません');
       } else if (err.code === 'auth/invalid-email') {
         setError('有効なメールアドレスを入力してください');
       } else {
-        setError('パスワードリセットメールの送信に失敗しました');
+        setError(`パスワードリセットメールの送信に失敗しました: ${err.code || err.message}`);
       }
     } finally {
       setIsSubmitting(false);

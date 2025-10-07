@@ -6,32 +6,44 @@ import type { MemberFormData, RegisterMemberResult } from '@/types/member';
 import { ZodError } from 'zod';
 
 /**
- * 会員番号生成（JTA-XXXXXX形式、6桁ランダム数字）
- * ユニークチェック付き（最大10回リトライ）
+ * 会員番号生成（JTA-XXXXXXXX形式、8桁連番）
+ * Firestore Transactionで安全に連番を発行
+ * 最大99,999,999人まで対応
  */
-async function generateUniqueMemberId(): Promise<string> {
-  const maxRetries = 10;
-
-  for (let i = 0; i < maxRetries; i++) {
-    const randomNumber = Math.floor(Math.random() * 900000) + 100000; // 100000-999999
-    const memberId = `JTA-${randomNumber}`;
-
-    // Firestoreでユニークチェック
-    if (!db) {
-      throw new Error('Database not initialized');
-    }
-    const snapshot = await db
-      .collection('members')
-      .where('memberId', '==', memberId)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) {
-      return memberId;
-    }
+async function generateSequentialMemberId(): Promise<string> {
+  if (!db) {
+    throw new Error('Database not initialized');
   }
 
-  throw new Error('会員番号の生成に失敗しました');
+  const counterRef = db.collection('counters').doc('memberIdCounter');
+
+  return await db.runTransaction(async (transaction) => {
+    const counterDoc = await transaction.get(counterRef);
+
+    // 現在のカウンターを取得（初回は0）
+    let currentNumber = 0;
+    if (counterDoc.exists) {
+      const data = counterDoc.data();
+      currentNumber = data?.current || 0;
+    }
+
+    // 次の番号
+    const nextNumber = currentNumber + 1;
+
+    // 最大値チェック（99,999,999人まで）
+    if (nextNumber > 99999999) {
+      throw new Error('会員番号の上限に達しました');
+    }
+
+    // 8桁にゼロパディング
+    const paddedNumber = nextNumber.toString().padStart(8, '0');
+    const memberId = `JTA-${paddedNumber}`;
+
+    // カウンターを更新
+    transaction.set(counterRef, { current: nextNumber }, { merge: true });
+
+    return memberId;
+  });
 }
 
 /**
@@ -68,10 +80,10 @@ export async function registerMember(
     }
 
     // 3. 会員番号生成
-    const memberId = await generateUniqueMemberId();
+    const memberId = await generateSequentialMemberId();
 
-    // 4. Firebase Authユーザー作成（初期パスワード: 会員番号の下6桁）
-    const initialPassword = memberId.split('-')[1]; // JTA-123456 → 123456
+    // 4. Firebase Authユーザー作成（初期パスワード: 会員番号の下8桁）
+    const initialPassword = memberId.split('-')[1]; // JTA-00000001 → 00000001
     let uid: string;
 
     console.log('=== Firebase Auth User Creation Debug ===');
