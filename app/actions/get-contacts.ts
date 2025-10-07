@@ -8,6 +8,11 @@ import type { Contact } from '@/types/member';
  */
 export async function getContacts(): Promise<Contact[]> {
   try {
+    if (!db) {
+      console.error('Firebase Admin SDK is not initialized');
+      return [];
+    }
+
     const contactsSnapshot = await db
       .collection('contacts')
       .orderBy('createdAt', 'desc')
@@ -42,6 +47,14 @@ export async function updateContactStatus(
   status: 'unread' | 'read' | 'replied'
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!db) {
+      console.error('Firebase Admin SDK is not initialized');
+      return {
+        success: false,
+        error: 'データベース接続エラー',
+      };
+    }
+
     await db.collection('contacts').doc(contactId).update({
       status,
       updatedAt: new Date(),
