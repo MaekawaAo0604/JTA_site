@@ -83,6 +83,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
+            <a href="/forgot-password" className="text-gold hover:underline block mb-4">
+              パスワードを忘れた方はこちら
+            </a>
             <p>アカウントをお持ちでない方は</p>
             <a href="/join" className="text-gold hover:opacity-90 transition-opacity">
               入会試験から登録
