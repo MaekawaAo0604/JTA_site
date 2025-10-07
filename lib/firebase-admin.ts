@@ -47,3 +47,13 @@ if (!getApps().length && hasFirebaseConfig) {
 
 export const db = hasFirebaseConfig && adminApp ? getFirestore(adminApp) : null as any;
 export const auth = hasFirebaseConfig && adminApp ? getAuth(adminApp) : null as any;
+
+// Debug logging
+if (typeof window === 'undefined') {
+  console.log('Firebase Admin SDK Status:', {
+    hasConfig: hasFirebaseConfig,
+    hasApp: !!adminApp,
+    dbInitialized: !!db,
+    authInitialized: !!auth,
+  });
+}
