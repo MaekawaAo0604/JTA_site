@@ -32,6 +32,7 @@ export interface MemberFormData {
 export interface RegisterMemberResult {
   success: boolean;
   memberId?: string;
+  initialPassword?: string;
   error?: string;
 }
 

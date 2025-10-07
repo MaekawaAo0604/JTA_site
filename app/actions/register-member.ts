@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase';
 import { MemberFormSchema } from '@/lib/validation';
 import type { MemberFormData, RegisterMemberResult } from '@/types/member';
 import { ZodError } from 'zod';
+import { getAuth } from 'firebase-admin/auth';
 
 /**
  * 会員番号生成（JTA-XXXXXX形式、6桁ランダム数字）
@@ -67,8 +68,28 @@ export async function registerMember(
     // 3. 会員番号生成
     const memberId = await generateUniqueMemberId();
 
-    // 4. Firestore members コレクションに保存
+    // 4. Firebase Authユーザー作成（初期パスワード: 会員番号の下6桁）
+    const initialPassword = memberId.split('-')[1]; // JTA-123456 → 123456
+    let uid: string;
+
+    try {
+      const userRecord = await getAuth().createUser({
+        email: validated.email,
+        password: initialPassword,
+        displayName: validated.name || undefined,
+      });
+      uid = userRecord.uid;
+    } catch (authError: any) {
+      console.error('Firebase Auth user creation failed:', authError);
+      return {
+        success: false,
+        error: 'ユーザー作成に失敗しました',
+      };
+    }
+
+    // 5. Firestore members コレクションに保存
     await adminDb.collection('members').add({
+      uid,
       name: validated.name || null,
       email: validated.email,
       age: validated.age,
@@ -80,10 +101,11 @@ export async function registerMember(
       issuedAt: new Date(),
     });
 
-    // 5. 成功時
+    // 6. 成功時（初期パスワードを返す）
     return {
       success: true,
       memberId,
+      initialPassword,
     };
   } catch (error) {
     // エラーハンドリング

@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logOut } = useAuth();
 
   const navLinks = [
     { href: '/', label: 'ホーム' },
@@ -55,6 +57,35 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              {user ? (
+                <>
+                  <li>
+                    <Link
+                      href="/member-card"
+                      className="text-gold hover:text-gold/80 transition-colors"
+                    >
+                      会員証
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => logOut()}
+                      className="text-gold hover:text-gold/80 transition-colors"
+                    >
+                      ログアウト
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <Link
+                    href="/login"
+                    className="text-gold hover:text-gold/80 transition-colors"
+                  >
+                    ログイン
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
 
@@ -104,6 +135,40 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              {user ? (
+                <>
+                  <li>
+                    <Link
+                      href="/member-card"
+                      className="block text-gold hover:text-gold/80 transition-colors py-2 px-4 rounded hover:bg-gold/10"
+                      onClick={closeMobileMenu}
+                    >
+                      会員証
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        logOut();
+                        closeMobileMenu();
+                      }}
+                      className="block text-gold hover:text-gold/80 transition-colors py-2 px-4 rounded hover:bg-gold/10 w-full text-left"
+                    >
+                      ログアウト
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <Link
+                    href="/login"
+                    className="block text-gold hover:text-gold/80 transition-colors py-2 px-4 rounded hover:bg-gold/10"
+                    onClick={closeMobileMenu}
+                  >
+                    ログイン
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         )}
