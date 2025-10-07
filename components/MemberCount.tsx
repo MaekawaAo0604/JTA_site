@@ -1,6 +1,6 @@
 import { getMemberCount } from '@/lib/actions/members';
 
-export const revalidate = 60; // 60秒間キャッシュ
+export const revalidate = 0; // キャッシュを無効化（リアルタイム更新）
 
 export default async function MemberCount() {
   const count = await getMemberCount();
