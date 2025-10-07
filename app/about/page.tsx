@@ -7,19 +7,9 @@ export const metadata: Metadata = {
 
 const leadership = [
   {
-    title: '会長',
-    name: '天野 巻雄',
-    description: '元気象予報士。湿度60%超えで爆発する天パを持つ。',
-  },
-  {
-    title: '副会長',
-    name: '雨宮 渦子',
-    description: '美容業界出身。縮毛矯正を5回挫折した経験を持つ。',
-  },
-  {
-    title: '事務局長',
-    name: '梅田 螺旋',
-    description: '元弁護士。天パ差別訴訟で勝訴経験あり。',
+    title: '代表',
+    name: '前川 蒼',
+    description: '日本天パ協会の設立者。天パの個性を文化として認める活動を推進。',
   },
 ];
 
@@ -102,11 +92,11 @@ export default function AboutPage() {
         <h2 className="text-3xl font-bold text-navy mb-8 text-center">
           組織体制
         </h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="flex justify-center">
           {leadership.map((member) => (
             <div
               key={member.title}
-              className="p-6 border border-gray-200 rounded-lg hover:border-gold transition-colors"
+              className="p-6 border border-gray-200 rounded-lg hover:border-gold transition-colors max-w-md"
             >
               <div className="text-center mb-4">
                 <div className="w-24 h-24 mx-auto bg-gradient-to-br from-navy to-blue-900 rounded-full flex items-center justify-center mb-4">

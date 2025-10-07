@@ -34,3 +34,35 @@ export interface RegisterMemberResult {
   memberId?: string;
   error?: string;
 }
+
+/**
+ * お問い合わせデータモデル
+ */
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'unread' | 'read' | 'replied';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * お問い合わせフォームデータ
+ */
+export interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+/**
+ * お問い合わせ送信結果
+ */
+export interface SubmitContactResult {
+  success: boolean;
+  error?: string;
+}

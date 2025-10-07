@@ -66,11 +66,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-semibold text-navy mb-4">お問い合わせ先</h2>
               <p>
-                プライバシーポリシーに関するお問い合わせは、以下までご連絡ください。
-              </p>
-              <p className="mt-4 font-medium">
-                日本天パ協会<br />
-                Email: privacy@tenpa.org
+                プライバシーポリシーに関するお問い合わせは、<a href="/contact" className="text-gold hover:opacity-90 transition-opacity">お問い合わせフォーム</a>からご連絡ください。
               </p>
             </section>
 
