@@ -442,11 +442,11 @@ export default function MemberCardPage() {
 
       {/* 会員証プレビュー */}
       <div className="card-official mb-8">
-        <div className="flex justify-center">
+        <div className="flex justify-center overflow-hidden">
           <canvas
             ref={canvasRef}
-            className="border-4 border-gold rounded-lg shadow-2xl max-w-full h-auto"
-            style={{ maxWidth: '856px' }}
+            className="border-4 border-gold rounded-lg shadow-2xl w-full h-auto"
+            style={{ maxWidth: '100%' }}
           />
         </div>
       </div>
