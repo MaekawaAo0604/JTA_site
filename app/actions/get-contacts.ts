@@ -13,7 +13,7 @@ export async function getContacts(): Promise<Contact[]> {
       .orderBy('createdAt', 'desc')
       .get();
 
-    const contacts: Contact[] = contactsSnapshot.docs.map((doc) => {
+    const contacts: Contact[] = contactsSnapshot.docs.map((doc: any) => {
       const data = doc.data();
       return {
         id: doc.id,
