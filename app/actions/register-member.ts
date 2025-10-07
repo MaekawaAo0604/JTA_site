@@ -17,7 +17,7 @@ async function generateSequentialMemberId(): Promise<string> {
 
   const counterRef = db.collection('counters').doc('memberIdCounter');
 
-  return await db.runTransaction(async (transaction) => {
+  return await db.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
     const counterDoc = await transaction.get(counterRef);
 
     // 現在のカウンターを取得（初回は0）
