@@ -15,9 +15,14 @@ export default function AdminContactsPage() {
 
   const loadContacts = async () => {
     setIsLoading(true);
-    const data = await getContacts();
-    setContacts(data);
-    setIsLoading(false);
+    try {
+      const data = await getContacts();
+      setContacts(data);
+    } catch (error) {
+      console.error('お問い合わせの読み込みに失敗しました:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleStatusChange = async (contactId: string, newStatus: 'unread' | 'read' | 'replied') => {
@@ -157,7 +162,9 @@ export default function AdminContactsPage() {
                           {getStatusLabel(contact.status)}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {contact.createdAt.toDate().toLocaleString('ja-JP')}
+                          {typeof contact.createdAt === 'object' && 'seconds' in contact.createdAt
+                            ? new Date(contact.createdAt.seconds * 1000).toLocaleString('ja-JP')
+                            : '日付不明'}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-navy mb-1">

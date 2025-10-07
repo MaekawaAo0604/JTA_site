@@ -36,7 +36,7 @@ export interface RegisterMemberResult {
 }
 
 /**
- * お問い合わせデータモデル
+ * お問い合わせデータモデル（サーバー側）
  */
 export interface Contact {
   id: string;
@@ -45,8 +45,8 @@ export interface Contact {
   subject: string;
   message: string;
   status: 'unread' | 'read' | 'replied';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Timestamp | { seconds: number; nanoseconds: number };
+  updatedAt: Timestamp | { seconds: number; nanoseconds: number };
 }
 
 /**
