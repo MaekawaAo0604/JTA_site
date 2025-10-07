@@ -1,10 +1,9 @@
 'use server';
 
-import { db } from '@/lib/firebase-admin';
+import { db, auth } from '@/lib/firebase-admin';
 import { MemberFormSchema } from '@/lib/validation';
 import type { MemberFormData, RegisterMemberResult } from '@/types/member';
 import { ZodError } from 'zod';
-import { getAuth } from 'firebase-admin/auth';
 
 /**
  * 会員番号生成（JTA-XXXXXX形式、6桁ランダム数字）
@@ -79,9 +78,18 @@ export async function registerMember(
     console.log('Attempting to create user with email:', validated.email);
     console.log('Initial password:', initialPassword);
     console.log('Display name:', validated.name || 'undefined');
+    console.log('Auth instance:', auth ? 'initialized' : 'null');
+
+    if (!auth) {
+      console.error('Firebase Auth is not initialized');
+      return {
+        success: false,
+        error: 'Firebase認証が初期化されていません',
+      };
+    }
 
     try {
-      const userRecord = await getAuth().createUser({
+      const userRecord = await auth.createUser({
         email: validated.email,
         password: initialPassword,
         displayName: validated.name || undefined,

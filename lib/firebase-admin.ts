@@ -1,6 +1,7 @@
 // Firebase Admin SDK (サーバーサイド用)
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // Firebase設定チェック
 const hasFirebaseConfig = Boolean(
@@ -20,11 +21,13 @@ function normalizePrivateKey(key: string): string {
   return key.replace(/\\n/g, '\n');
 }
 
+let adminApp: App | null = null;
+
 if (!getApps().length && hasFirebaseConfig) {
   try {
     const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY!);
 
-    initializeApp({
+    adminApp = initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID!,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
@@ -38,6 +41,9 @@ if (!getApps().length && hasFirebaseConfig) {
     console.error('Private key length:', process.env.FIREBASE_PRIVATE_KEY?.length);
     console.error('Private key starts with:', process.env.FIREBASE_PRIVATE_KEY?.substring(0, 50));
   }
+} else if (getApps().length > 0) {
+  adminApp = getApps()[0];
 }
 
-export const db = hasFirebaseConfig ? getFirestore() : null as any;
+export const db = hasFirebaseConfig && adminApp ? getFirestore(adminApp) : null as any;
+export const auth = hasFirebaseConfig && adminApp ? getAuth(adminApp) : null as any;
