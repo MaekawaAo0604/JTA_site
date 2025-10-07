@@ -1,8 +1,13 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { getMemberByUid } from '@/app/actions/get-member-by-uid';
 
 export default function MemberCardPage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -16,26 +21,37 @@ export default function MemberCardPage() {
     day: 'numeric',
   });
 
-  // localStorageから会員情報を読み込む
+  // 認証チェックとFirestoreから会員情報を読み込む
   useEffect(() => {
-    const savedData = localStorage.getItem('memberData');
-    if (savedData) {
+    const loadMemberData = async () => {
+      if (loading) return;
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
       try {
-        const data = JSON.parse(savedData);
-        setMemberName(data.name || '会員');
-        setMemberId(data.memberId || 'JTA-000000');
-        setHairType(data.hairType || 'くせ毛');
+        const memberData = await getMemberByUid(user.uid);
+        if (memberData) {
+          setMemberName(memberData.name || '会員');
+          setMemberId(memberData.memberId);
+          setHairType(memberData.hairType);
+        } else {
+          setMemberName('会員');
+          setMemberId('JTA-000000');
+        }
       } catch (error) {
-        console.error('Failed to parse member data:', error);
+        console.error('会員情報の取得に失敗しました:', error);
         setMemberName('会員');
         setMemberId('JTA-000000');
+      } finally {
+        setIsLoaded(true);
       }
-    } else {
-      setMemberName('会員');
-      setMemberId('JTA-000000');
-    }
-    setIsLoaded(true);
-  }, []);
+    };
+
+    loadMemberData();
+  }, [user, loading, router]);
 
   // データ読み込み完了後にCanvasを初期描画
   useEffect(() => {
@@ -354,6 +370,15 @@ export default function MemberCardPage() {
       console.error('Share failed:', error);
     }
   };
+
+  // ローディング中
+  if (loading || !isLoaded) {
+    return (
+      <div className="min-h-screen bg-navy py-16 flex items-center justify-center">
+        <div className="text-gold text-xl">読み込み中...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">

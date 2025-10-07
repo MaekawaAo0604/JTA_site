@@ -10,6 +10,7 @@ export default function ResultPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [memberId, setMemberId] = useState<string | null>(null);
+  const [initialPassword, setInitialPassword] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<MemberFormData>({
@@ -61,15 +62,8 @@ export default function ResultPage() {
 
       if (result.success && result.memberId) {
         setMemberId(result.memberId);
+        setInitialPassword(result.initialPassword || null);
         setRegistrationComplete(true);
-
-        // 会員情報をlocalStorageに保存
-        localStorage.setItem('memberData', JSON.stringify({
-          name: formData.name || '会員',
-          memberId: result.memberId,
-          hairType: formData.hairType,
-          email: formData.email,
-        }));
       } else {
         setError(result.error || '登録に失敗しました');
       }
@@ -243,12 +237,24 @@ export default function ResultPage() {
           <div className="text-6xl mb-4">✅</div>
           <h2 className="text-3xl font-bold text-navy mb-4">登録完了</h2>
           <p className="text-gray-700 mb-2">会員登録が完了しました。</p>
-          <p className="text-sm text-gray-600 mb-6">会員番号: {memberId}</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <p className="text-sm text-gray-600 mb-2">会員番号</p>
+            <p className="text-2xl font-bold text-navy mb-4">{memberId}</p>
+            {initialPassword && (
+              <>
+                <p className="text-sm text-gray-600 mb-2">初期パスワード（会員証ログイン用）</p>
+                <p className="text-2xl font-bold text-navy mb-2">{initialPassword}</p>
+                <p className="text-xs text-red-600 mt-2">
+                  ※ このパスワードは再表示されません。必ず保存してください。
+                </p>
+              </>
+            )}
+          </div>
           <button
-            onClick={() => router.push('/member-card')}
+            onClick={() => router.push('/login')}
             className="btn-primary text-lg px-8 py-3"
           >
-            会員証を発行する
+            ログインして会員証を発行する
           </button>
         </div>
       )}
