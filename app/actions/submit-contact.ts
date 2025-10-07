@@ -28,6 +28,15 @@ export async function submitContact(
       };
     }
 
+    // Firebase Admin SDK初期化チェック
+    if (!db) {
+      console.error('Firebase Admin SDK is not initialized');
+      return {
+        success: false,
+        error: 'データベース接続エラーが発生しました',
+      };
+    }
+
     // Firestoreに保存
     const contactRef = db.collection('contacts').doc();
     await contactRef.set({
