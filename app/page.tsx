@@ -1,4 +1,6 @@
 import { Suspense } from 'react';
+
+export const revalidate = 0; // キャッシュを無効化してリアルタイム更新を有効化
 import Link from 'next/link';
 import MemberCount from '@/components/MemberCount';
 import ForecastMap from '@/components/ForecastMap';
