@@ -1,17 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getContacts, updateContactStatus } from '@/app/actions/get-contacts';
+import { checkAdminAccess } from '@/app/actions/check-admin';
 import type { Contact } from '@/types/member';
 
 export default function AdminContactsPage() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read' | 'replied'>('all');
 
   useEffect(() => {
-    loadContacts();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    setIsCheckingAuth(true);
+    try {
+      const { isAdmin } = await checkAdminAccess();
+      if (!isAdmin) {
+        router.push('/login?redirect=/admin/contacts');
+        return;
+      }
+      await loadContacts();
+    } catch (error) {
+      console.error('認証チェックに失敗しました:', error);
+      router.push('/login?redirect=/admin/contacts');
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
   const loadContacts = async () => {
     setIsLoading(true);
@@ -69,12 +90,14 @@ export default function AdminContactsPage() {
     }
   };
 
-  if (isLoading) {
+  if (isCheckingAuth || isLoading) {
     return (
       <div className="min-h-screen bg-navy py-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="card-official text-center">
-            <p className="text-gray-600">読み込み中...</p>
+            <p className="text-gray-600">
+              {isCheckingAuth ? '認証確認中...' : '読み込み中...'}
+            </p>
           </div>
         </div>
       </div>
@@ -162,9 +185,7 @@ export default function AdminContactsPage() {
                           {getStatusLabel(contact.status)}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {typeof contact.createdAt === 'object' && 'seconds' in contact.createdAt
-                            ? new Date(contact.createdAt.seconds * 1000).toLocaleString('ja-JP')
-                            : '日付不明'}
+                          {new Date(contact.createdAt).toLocaleString('ja-JP')}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-navy mb-1">

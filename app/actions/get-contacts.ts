@@ -20,6 +20,11 @@ export async function getContacts(): Promise<Contact[]> {
 
     const contacts: Contact[] = contactsSnapshot.docs.map((doc: any) => {
       const data = doc.data();
+      
+      // Timestamp を ISO 文字列に変換してシリアライズ可能にする
+      const createdAt = data.createdAt?.toDate?.() ?? data.createdAt;
+      const updatedAt = data.updatedAt?.toDate?.() ?? data.updatedAt;
+      
       return {
         id: doc.id,
         name: data.name,
@@ -27,8 +32,8 @@ export async function getContacts(): Promise<Contact[]> {
         subject: data.subject,
         message: data.message,
         status: data.status,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        createdAt: createdAt instanceof Date ? createdAt.toISOString() : createdAt,
+        updatedAt: updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
       };
     });
 

@@ -32,11 +32,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    // ID トークンを取得してセッション Cookie を作成
+    const idToken = await userCredential.user.getIdToken();
+    
+    // Server Action でセッション Cookie を作成
+    const response = await fetch('/api/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('セッションの作成に失敗しました');
+    }
   };
 
   const logOut = async () => {
     await signOut(auth);
+    
+    // セッション Cookie を削除
+    await fetch('/api/session', {
+      method: 'DELETE',
+    });
   };
 
   return (
