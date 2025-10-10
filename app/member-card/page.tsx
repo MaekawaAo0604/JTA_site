@@ -242,7 +242,7 @@ export default function MemberCardPage() {
     ctx.fillText('有効期限', infoX, infoY);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '20px sans-serif';
-    ctx.fillText('すべての髪が祝福される日まで', infoX + 120, infoY);
+    ctx.fillText('すべての髪型が祝福される日まで', infoX + 120, infoY);
 
     // 下部注意書き
     ctx.fillStyle = '#94A3B8';
