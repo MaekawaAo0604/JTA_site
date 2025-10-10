@@ -18,7 +18,7 @@ export default function ResultPage() {
     email: '',
     age: 0,
     gender: '男性',
-    hairType: '直毛',
+    hairType: '直毛（ストレート）',
     agreeToPrivacy: false,
   });
 
@@ -192,8 +192,10 @@ export default function ResultPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
                 required
               >
-                <option value="直毛">直毛</option>
+                <option value="直毛（ストレート）">直毛（ストレート）</option>
                 <option value="くせ毛">くせ毛</option>
+                <option value="天然パーマ">天然パーマ</option>
+                <option value="ウェーブ">ウェーブ</option>
                 <option value="その他">その他</option>
               </select>
             </div>

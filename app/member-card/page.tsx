@@ -449,10 +449,11 @@ export default function MemberCardPage() {
               onChange={(e) => setHairType(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
             >
+              <option value="直毛（ストレート）">直毛（ストレート）</option>
               <option value="くせ毛">くせ毛</option>
               <option value="天然パーマ">天然パーマ</option>
-              <option value="ストレート">ストレート</option>
               <option value="ウェーブ">ウェーブ</option>
+              <option value="その他">その他</option>
             </select>
           </div>
         </div>
