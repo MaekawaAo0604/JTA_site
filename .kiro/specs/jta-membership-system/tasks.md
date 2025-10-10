@@ -2,17 +2,18 @@
 
 ## タスク概要
 
-このドキュメントは、jta-membership-system仕様の実装タスクを定義します。各タスクはコード生成プロンプトとして記述され、階層的な番号付けにより構造化されています。
+このドキュメントは、jta-membership-system 仕様の実装タスクを定義します。各タスクはコード生成プロンプトとして記述され、階層的な番号付けにより構造化されています。
 
 ## タスク階層
 
-### フェーズ1: プロジェクトセットアップ
+### フェーズ 1: プロジェクトセットアップ
 
 #### 1. Next.js プロジェクト初期化
 
 _Requirements: すべての要件の基盤_
 
 **プロンプト:**
+
 ```
 Next.js 15 App Routerプロジェクトを初期化してください。以下の要件を満たすこと：
 
@@ -36,9 +37,10 @@ Next.js 15 App Routerプロジェクトを初期化してください。以下�
 
 #### 1.1 TailwindCSS カスタム設定
 
-_Requirements: 要件4（デザイン要件）_
+_Requirements: 要件 4（デザイン要件）_
 
 **プロンプト:**
+
 ```
 tailwind.config.ts を以下の仕様で作成してください：
 
@@ -61,9 +63,10 @@ tailwind.config.ts を以下の仕様で作成してください：
 
 #### 1.2 Firebase プロジェクト設定
 
-_Requirements: 要件4, 9, 10（会員登録、データ整合性、セキュリティ）_
+_Requirements: 要件 4, 9, 10（会員登録、データ整合性、セキュリティ）_
 
 **プロンプト:**
+
 ```
 Firebase プロジェクトの設定ファイルを作成してください：
 
@@ -87,13 +90,14 @@ Firebase プロジェクトの設定ファイルを作成してください：
 
 ---
 
-### フェーズ2: データモデルとバリデーション
+### フェーズ 2: データモデルとバリデーション
 
 #### 2. TypeScript 型定義
 
-_Requirements: 要件4（会員登録データモデル）_
+_Requirements: 要件 4（会員登録データモデル）_
 
 **プロンプト:**
+
 ```
 /types/member.ts を作成し、以下の型定義を実装してください：
 
@@ -127,9 +131,10 @@ interface RegisterMemberResult {
 
 #### 2.1 Zod バリデーションスキーマ
 
-_Requirements: 要件4（フォームバリデーション）_
+_Requirements: 要件 4（フォームバリデーション）_
 
 **プロンプト:**
+
 ```
 /lib/validation.ts を作成し、Zodスキーマを定義してください：
 
@@ -152,13 +157,14 @@ export type MemberFormInput = z.infer<typeof MemberFormSchema>;
 
 ---
 
-### フェーズ3: Server Actions実装
+### フェーズ 3: Server Actions 実装
 
 #### 3. 会員登録 Server Action
 
-_Requirements: 要件4（会員登録機能）_
+_Requirements: 要件 4（会員登録機能）_
 
 **プロンプト:**
+
 ```
 /app/actions/register-member.ts を作成し、以下の Server Action を実装してください：
 
@@ -185,9 +191,10 @@ export async function registerMember(formData: MemberFormData): Promise<Register
 
 #### 3.1 会員数取得 Server Action
 
-_Requirements: 要件1, 9（トップページ会員数表示、データ整合性）_
+_Requirements: 要件 1, 9（トップページ会員数表示、データ整合性）_
 
 **プロンプト:**
+
 ```
 /app/actions/get-member-count.ts を作成してください：
 
@@ -208,9 +215,10 @@ export async function getMemberCount(): Promise<number> {
 
 #### 3.2 会員情報取得 Server Action
 
-_Requirements: 要件5（会員証発行）_
+_Requirements: 要件 5（会員証発行）_
 
 **プロンプト:**
+
 ```
 /app/actions/get-member.ts を作成してください：
 
@@ -230,13 +238,14 @@ export async function getMemberById(memberId: string): Promise<Member | null> {
 
 ---
 
-### フェーズ4: 共通コンポーネント
+### フェーズ 4: 共通コンポーネント
 
 #### 4. レイアウトとヘッダー
 
-_Requirements: 要件1（ヘッダー、エンブレム、ナビ）_
+_Requirements: 要件 1（ヘッダー、エンブレム、ナビ）_
 
 **プロンプト:**
+
 ```
 以下のファイルを作成してください：
 
@@ -262,9 +271,10 @@ _Requirements: 要件1（ヘッダー、エンブレム、ナビ）_
 
 #### 4.1 フッター
 
-_Requirements: 要件10（プライバシーポリシー）_
+_Requirements: 要件 10（プライバシーポリシー）_
 
 **プロンプト:**
+
 ```
 /components/Footer.tsx (Server Component) を作成してください：
 
@@ -280,9 +290,10 @@ _Requirements: 要件10（プライバシーポリシー）_
 
 #### 4.2 Loading と Error コンポーネント
 
-_Requirements: すべての要件（UX向上）_
+_Requirements: すべての要件（UX 向上）_
 
 **プロンプト:**
+
 ```
 以下のファイルを作成してください：
 
@@ -303,13 +314,14 @@ _Requirements: すべての要件（UX向上）_
 
 ---
 
-### フェーズ5: ページ実装 - 静的ページ
+### フェーズ 5: ページ実装 - 静的ページ
 
 #### 5. トップページ
 
-_Requirements: 要件1（トップページ表示機能）_
+_Requirements: 要件 1（トップページ表示機能）_
 
 **プロンプト:**
+
 ```
 /app/page.tsx (Server Component) を作成してください：
 
@@ -336,9 +348,10 @@ _Requirements: 要件1（トップページ表示機能）_
 
 #### 5.1 協会についてページ
 
-_Requirements: 要件2（協会情報表示機能）_
+_Requirements: 要件 2（協会情報表示機能）_
 
 **プロンプト:**
+
 ```
 /app/about/page.tsx (Server Component) を作成してください：
 
@@ -368,9 +381,10 @@ _Requirements: 要件2（協会情報表示機能）_
 
 #### 5.2 天パ予報ページ
 
-_Requirements: 要件6（天パ予報表示機能）_
+_Requirements: 要件 6（天パ予報表示機能）_
 
 **プロンプト:**
+
 ```
 /app/forecast/page.tsx (Server Component) を作成してください：
 
@@ -399,9 +413,10 @@ _Requirements: 要件6（天パ予報表示機能）_
 
 #### 5.3 記事ページ
 
-_Requirements: 要件7（記事閲覧機能）_
+_Requirements: 要件 7（記事閲覧機能）_
 
 **プロンプト:**
+
 ```
 以下のファイルを作成してください：
 
@@ -429,9 +444,10 @@ package.json に追加:
 
 #### 5.4 プライバシーポリシーページ
 
-_Requirements: 要件10（セキュリティとプライバシー）_
+_Requirements: 要件 10（セキュリティとプライバシー）_
 
 **プロンプト:**
+
 ```
 /app/privacy/page.tsx (Server Component) を作成してください：
 
@@ -451,13 +467,14 @@ _Requirements: 要件10（セキュリティとプライバシー）_
 
 ---
 
-### フェーズ6: ページ実装 - インタラクティブページ
+### フェーズ 6: ページ実装 - インタラクティブページ
 
 #### 6. 入会試験ページ
 
-_Requirements: 要件3（入会試験機能）_
+_Requirements: 要件 3（入会試験機能）_
 
 **プロンプト:**
+
 ```
 /app/join/page.tsx (Client Component) を作成してください：
 
@@ -491,9 +508,10 @@ _Requirements: 要件3（入会試験機能）_
 
 #### 6.1 試験結果・登録フォームページ
 
-_Requirements: 要件4（会員登録機能）_
+_Requirements: 要件 4（会員登録機能）_
 
 **プロンプト:**
+
 ```
 /app/join/result/page.tsx (Client Component) を作成してください：
 
@@ -541,9 +559,10 @@ package.json に追加:
 
 #### 6.2 会員証発行ページ
 
-_Requirements: 要件5（会員証発行機能）_
+_Requirements: 要件 5（会員証発行機能）_
 
 **プロンプト:**
+
 ```
 /app/member-card/page.tsx (Client Component) を作成してください：
 
@@ -573,7 +592,7 @@ _Requirements: 要件5（会員証発行機能）_
        - 髪質: {member.hairType}
      - 中央: 透かしエンブレム（薄い色）
      - 下部テキスト（小さく）:
-       - "有効期限: 髪がなくなるその日まで"
+       - "有効期限: 全ての髪型が祝福される日まで"
        - "この証明証は公的効力を有しません"
 
 5. ダウンロード機能:
@@ -588,9 +607,10 @@ _Requirements: 要件5（会員証発行機能）_
 
 #### 6.3 お問い合わせページ
 
-_Requirements: 要件8（お問い合わせ機能）_
+_Requirements: 要件 8（お問い合わせ機能）_
 
 **プロンプト:**
+
 ```
 /app/contact/page.tsx (Client Component) を作成してください：
 
@@ -627,13 +647,14 @@ _Requirements: 要件8（お問い合わせ機能）_
 
 ---
 
-### フェーズ7: GitHub Actions ワークフロー
+### フェーズ 7: GitHub Actions ワークフロー
 
 #### 7. 天パ予報マップ生成スクリプト
 
-_Requirements: 要件6（天パ予報表示機能 - 自動生成）_
+_Requirements: 要件 6（天パ予報表示機能 - 自動生成）_
 
 **プロンプト:**
+
 ```
 以下のファイルを作成してください：
 
@@ -665,9 +686,10 @@ _Requirements: 要件6（天パ予報表示機能 - 自動生成）_
 
 #### 7.1 GitHub Actions ワークフロー
 
-_Requirements: 要件6（天パ予報表示機能 - cron自動実行）_
+_Requirements: 要件 6（天パ予報表示機能 - cron 自動実行）_
 
 **プロンプト:**
+
 ```
 /.github/workflows/generate-forecast.yml を作成してください：
 
@@ -697,13 +719,14 @@ _Requirements: 要件6（天パ予報表示機能 - cron自動実行）_
 
 ---
 
-### フェーズ8: Firestore セキュリティルール
+### フェーズ 8: Firestore セキュリティルール
 
 #### 8. セキュリティルール実装
 
-_Requirements: 要件10（セキュリティとプライバシー）_
+_Requirements: 要件 10（セキュリティとプライバシー）_
 
 **プロンプト:**
+
 ```
 /firestore.rules ファイルを作成してください：
 
@@ -739,13 +762,14 @@ service cloud.firestore {
 
 ---
 
-### フェーズ9: テスト実装
+### フェーズ 9: テスト実装
 
 #### 9. ユニットテスト
 
 _Requirements: すべての要件（品質保証）_
 
 **プロンプト:**
+
 ```
 以下のテストファイルを作成してください：
 
@@ -778,11 +802,12 @@ package.json に追加:
 - @testing-library/jest-dom
 ```
 
-#### 9.1 E2Eテスト
+#### 9.1 E2E テスト
 
-_Requirements: 要件3, 4, 5（入会試験、会員登録、会員証発行フロー）_
+_Requirements: 要件 3, 4, 5（入会試験、会員登録、会員証発行フロー）_
 
 **プロンプト:**
+
 ```
 以下の Playwright E2Eテストを作成してください：
 
@@ -810,13 +835,14 @@ playwright.config.ts を作成:
 
 ---
 
-### フェーズ10: 最適化とデプロイ準備
+### フェーズ 10: 最適化とデプロイ準備
 
 #### 10. パフォーマンス最適化
 
-_Requirements: 要件9（パフォーマンス）_
+_Requirements: 要件 9（パフォーマンス）_
 
 **プロンプト:**
+
 ```
 以下の最適化を実装してください：
 
@@ -843,6 +869,7 @@ _Requirements: 要件9（パフォーマンス）_
 _Requirements: すべての要件（本番環境デプロイ）_
 
 **プロンプト:**
+
 ```
 以下のファイルを作成してください：
 
@@ -874,15 +901,18 @@ _Requirements: すべての要件（本番環境デプロイ）_
 各タスクは以下の基準を満たした時点で完了とします：
 
 1. **コード品質:**
+
    - TypeScript エラーなし（npm run type-check）
    - ESLint エラーなし（npm run lint）
    - すべてのテストが通過（npm test）
 
 2. **機能要件:**
+
    - 対応する EARS 要件がすべて満たされている
-   - E2Eテストで主要フローが検証されている
+   - E2E テストで主要フローが検証されている
 
 3. **ドキュメント:**
+
    - コードにコメント（複雑なロジックのみ）
    - README.md にセットアップ手順記載
 
@@ -894,5 +924,5 @@ _Requirements: すべての要件（本番環境デプロイ）_
 ---
 
 **STATUS**: タスク生成完了
-**NEXT STEP**: 実装開始 - フェーズ1から順次実装を進めてください
+**NEXT STEP**: 実装開始 - フェーズ 1 から順次実装を進めてください
 **READY FOR IMPLEMENTATION**: 設計承認後、本タスクリストに基づいて実装可能
