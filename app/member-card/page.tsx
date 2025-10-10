@@ -291,7 +291,8 @@ export default function MemberCardPage() {
         return;
       }
 
-      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n#日本天パ協会 #天パ`;
+      const siteUrl = window.location.origin;
+      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n\n${siteUrl}\n\n#日本天パ協会 #天パ`;
 
       // Web Share API対応チェック（モバイル向け）
       if (navigator.share && navigator.canShare) {
@@ -341,7 +342,8 @@ export default function MemberCardPage() {
         return;
       }
 
-      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n#日本天パ協会 #天パ`;
+      const siteUrl = window.location.origin;
+      const text = `日本天パ協会の会員証を取得しました！\n会員番号: ${memberId}\n\n${siteUrl}\n\n#日本天パ協会 #天パ`;
 
       // Web Share API対応チェック（モバイル向け）
       if (navigator.share) {
