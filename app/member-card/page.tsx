@@ -418,8 +418,8 @@ export default function MemberCardPage() {
               type="text"
               id="memberId"
               value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent"
+              readOnly
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
               placeholder="JTA-123456"
             />
           </div>
