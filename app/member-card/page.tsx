@@ -308,12 +308,15 @@ export default function MemberCardPage() {
         }
       }
 
-      // Web Share API非対応の場合はテキストのみでX（Twitter）を開く
-      const url = encodeURIComponent(window.location.origin);
-      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-      window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+      // Web Share API非対応の場合
+      // 1. テキストをクリップボードにコピー
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (clipboardError) {
+        console.warn('クリップボードへのコピーに失敗しました:', clipboardError);
+      }
 
-      // 画像を別途ダウンロード
+      // 2. 画像をダウンロード
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -321,7 +324,12 @@ export default function MemberCardPage() {
       link.click();
       URL.revokeObjectURL(downloadUrl);
 
-      alert('画像をダウンロードしました。Xの投稿画面で画像を添付してください。');
+      // 3. X（Twitter）を開く
+      const url = encodeURIComponent(window.location.origin);
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+      window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+
+      alert('✅ 投稿テキストをコピーしました！\n✅ 画像をダウンロードしました！\n\nXの投稿画面で画像を添付してください。');
     } catch (error) {
       console.error('Share failed:', error);
     }
@@ -359,7 +367,15 @@ export default function MemberCardPage() {
         }
       }
 
-      // Web Share API非対応の場合は画像をダウンロード
+      // Web Share API非対応の場合
+      // 1. テキストをクリップボードにコピー
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (clipboardError) {
+        console.warn('クリップボードへのコピーに失敗しました:', clipboardError);
+      }
+
+      // 2. 画像をダウンロード
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -367,7 +383,7 @@ export default function MemberCardPage() {
       link.click();
       URL.revokeObjectURL(url);
 
-      alert('会員証をダウンロードしました。Instagramアプリから画像を選択して投稿してください。');
+      alert('✅ 投稿テキストをコピーしました！\n✅ 画像をダウンロードしました！\n\nInstagramアプリから画像を選択して、テキストを貼り付けて投稿してください。');
     } catch (error) {
       console.error('Share failed:', error);
     }
