@@ -3,7 +3,9 @@
 import { db } from '@/lib/firebase-admin';
 
 export async function getForecastImageUrl(): Promise<string> {
-  const defaultImageUrl = 'https://raw.githubusercontent.com/MaekawaAo0604/tenpayoho/gh-pages/forecast/latest.png';
+  // キャッシュバスティング用の日付パラメータを追加
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  const defaultImageUrl = `https://raw.githubusercontent.com/MaekawaAo0604/tenpayoho/gh-pages/forecast/latest.png?v=${today}`;
 
   try {
     if (!db) {
@@ -20,7 +22,10 @@ export async function getForecastImageUrl(): Promise<string> {
     }
 
     const data = forecastDoc.data();
-    return data?.imageUrl || defaultImageUrl;
+    const imageUrl = data?.imageUrl || defaultImageUrl;
+
+    // Firestoreから取得したURLにもキャッシュバスティングパラメータを追加
+    return imageUrl.includes('?') ? `${imageUrl}&v=${today}` : `${imageUrl}?v=${today}`;
   } catch (error) {
     console.error('Failed to get forecast image URL:', error);
     return defaultImageUrl;

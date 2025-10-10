@@ -8,10 +8,12 @@ import NewsSection from '@/components/NewsSection';
 
 function MemberCountSkeleton() {
   return (
-    <div className="card-official text-center animate-pulse">
+    <div className="card-official text-center">
       <h2 className="text-2xl font-bold text-navy mb-4">現在の会員数</h2>
-      <div className="h-20 bg-gray-200 rounded mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-48 mx-auto"></div>
+      <div className="animate-pulse space-y-3">
+        <div className="h-16 bg-gray-200 rounded mx-auto w-48"></div>
+        <div className="h-3 bg-gray-200 rounded mx-auto w-32"></div>
+      </div>
     </div>
   );
 }

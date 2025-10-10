@@ -10,7 +10,7 @@ export default async function ForecastMap() {
       <div className="relative w-full aspect-[16/9] bg-navy/5 rounded-lg overflow-hidden border border-gray-200">
         <Image
           src={imageUrl}
-          alt="天パ天気予報マップ"
+          alt="天パ天気予報（札幌・東京・名古屋・大阪・広島・福岡の天パ爆発指数マップ）"
           fill
           className="object-contain"
           priority

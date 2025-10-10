@@ -17,21 +17,21 @@ export const metadata: Metadata = {
     locale: 'ja_JP',
     url: 'https://tenpa.org',
     siteName: '日本天パ協会',
-    title: '日本天パ協会',
-    description: 'クセは個性、個性は文化。日本天パ協会公式サイト',
+    title: '日本天パ協会 - クセは個性、個性は文化。',
+    description: 'すべての髪型が祝福される日まで。天パの個性を文化として認め、誇りを持てる社会を目指します。',
     images: [
       {
         url: 'https://tenpa.org/images/jta-logo.png',
         width: 1200,
         height: 630,
-        alt: '日本天パ協会ロゴ',
+        alt: '日本天パ協会 - クセは個性、個性は文化',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '日本天パ協会',
-    description: 'クセは個性、個性は文化。日本天パ協会公式サイト',
+    title: '日本天パ協会 - クセは個性、個性は文化。',
+    description: 'すべての髪型が祝福される日まで。天パの個性を文化として認め、誇りを持てる社会を目指します。',
     images: ['https://tenpa.org/images/jta-logo.png'],
   },
   robots: {
