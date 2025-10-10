@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: '協会について | 日本天パ協会',
@@ -99,8 +100,14 @@ export default function AboutPage() {
               className="p-6 border border-gray-200 rounded-lg hover:border-gold transition-colors max-w-md"
             >
               <div className="text-center mb-4">
-                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-navy to-blue-900 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl text-gold">👤</span>
+                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 border-4 border-gold">
+                  <Image
+                    src="/images/maekawa-ao.jpg"
+                    alt="前川 蒼"
+                    width={128}
+                    height={128}
+                    className="object-cover w-full h-full"
+                  />
                 </div>
                 <h3 className="text-lg font-bold text-gold mb-1">
                   {member.title}
