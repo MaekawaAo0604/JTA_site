@@ -47,6 +47,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
+      <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-1KW441LW97"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-1KW441LW97');
+            `,
+          }}
+        />
+      </head>
       <body className="flex flex-col min-h-screen">
         <AuthProvider>
           <Header />
