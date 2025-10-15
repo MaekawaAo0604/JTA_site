@@ -18,7 +18,7 @@ export default function ResultPage() {
     email: '',
     age: 0,
     gender: '男性',
-    hairType: '直毛（ストレート）',
+    hairType: '直毛',
     agreeToPrivacy: false,
   });
 
