@@ -56,7 +56,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                パスワード（初回: 会員番号の下6桁）
+                パスワード（初回: 会員番号）
               </label>
               <input
                 type="password"
