@@ -40,6 +40,15 @@ export default function LoginPage() {
 
       const user = userCredential.user;
 
+      // メールアドレスが確認されているかチェック
+      if (!user.emailVerified) {
+        toast.error('メールアドレスが確認されていません。確認メールをご確認ください。');
+        if (auth) {
+          await auth.signOut();
+        }
+        return;
+      }
+
       // 会員情報が登録されているか確認
       const member = await getMemberByUid(user.uid);
 

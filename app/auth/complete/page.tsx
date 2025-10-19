@@ -46,6 +46,16 @@ export default function CompletePage() {
         return;
       }
 
+      // メールアドレスが確認されているかチェック
+      if (!user.emailVerified) {
+        toast.error('メールアドレスが確認されていません。確認メールをご確認ください。');
+        if (auth) {
+          await auth.signOut();
+        }
+        router.push('/login');
+        return;
+      }
+
       // 既に会員登録済みかチェック
       const member = await getMemberByUid(user.uid);
       if (member) {
