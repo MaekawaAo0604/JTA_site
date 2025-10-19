@@ -5,8 +5,10 @@
 日本天パ協会Webサイトは、Next.js 15 App RouterとFirebase Firestoreを基盤とした会員管理システムです。真面目な公式団体の外観とネタ要素を組み合わせた体験フローを提供し、入会試験から会員証発行までのシームレスなユーザー体験を実現します。
 
 **主要機能:**
-- 入会試験（3択×10問）と会員登録
-- 免許証風会員証のCanvas生成・PNG出力
+- 入会試験（3択×10問）
+- メール確認による本人認証とパスワード設定
+- Firebase Authentication による会員管理
+- 会員情報登録と免許証風会員証のCanvas生成・PNG出力
 - リアルタイム会員数表示
 - 天パ予報マップの自動生成・表示
 - ネタ記事閲覧とお問い合わせ
@@ -22,13 +24,16 @@
 | **HomePage (Server Component)** | 要件1 | WHERE トップページ THE SYSTEM SHALL 会員数と天パ予報マップを表示する |
 | **AboutPage (Server Component)** | 要件2 | WHERE 協会についてページ THE SYSTEM SHALL ミッション文・組織体制・倫理規定を表示する |
 | **ExamPage (Client Component)** | 要件3 | WHERE 入会試験ページ THE SYSTEM SHALL 3択×10問を表示し、全回答で送信可能にする |
-| **RegistrationForm (Client Component)** | 要件4 | WHEN ユーザーが登録ボタンをクリック THEN システムはFirestoreに会員データを作成 SHALL する |
-| **MemberCardGenerator (Client Component)** | 要件5 | WHERE 会員証ページ THE SYSTEM SHALL Canvas生成で免許証風PNG画像を提供する |
-| **ForecastPage (Server Component)** | 要件6 | WHERE 予報ページ THE SYSTEM SHALL 最新マップ画像とアーカイブを表示する |
-| **ArticlesPage (Server Component)** | 要件7 | WHERE 記事ページ THE SYSTEM SHALL ネタ記事一覧と詳細を表示する |
-| **ContactPage (Client Component)** | 要件8 | WHEN ユーザーが送信ボタンをクリック THEN システムは完了メッセージを表示 SHALL する |
-| **Firestore Real-time Integration** | 要件9 | WHEN 新規会員登録完了 THEN トップページの会員数は自動的に増加 SHALL する |
-| **Firestore Security Rules** | 要件10 | WHERE Firestore THE SYSTEM SHALL 適切なセキュリティルールとプライバシー保護を実装する |
+| **EmailRegistrationForm (Client Component)** | 要件4 | WHEN ユーザーが確認メール送信ボタンをクリック THEN システムは確認メールを送信 SHALL する |
+| **VerifyEmailPage (Client Component)** | 要件5 | WHERE メール確認ページ THE SYSTEM SHALL パスワード設定フォームを提供し、Firebase Auth でユーザー作成 SHALL する |
+| **MemberInfoForm (Client Component)** | 要件6 | WHEN ユーザーが登録ボタンをクリック THEN システムはFirestoreに会員データを作成 SHALL する |
+| **LoginPage (Client Component)** | 要件7 | WHERE ログインページ THE SYSTEM SHALL Firebase Authentication でメール・パスワード認証 SHALL する |
+| **MemberCardGenerator (Client Component)** | 要件8 | WHERE 会員証ページ THE SYSTEM SHALL ログイン確認後、Canvas生成で免許証風PNG画像を提供する |
+| **ForecastPage (Server Component)** | 要件9 | WHERE 予報ページ THE SYSTEM SHALL 最新マップ画像とアーカイブを表示する |
+| **ArticlesPage (Server Component)** | 要件10 | WHERE 記事ページ THE SYSTEM SHALL ネタ記事一覧と詳細を表示する |
+| **ContactPage (Client Component)** | 要件11 | WHEN ユーザーが送信ボタンをクリック THEN システムは完了メッセージを表示 SHALL する |
+| **Firestore Real-time Integration** | 要件12 | WHEN 新規会員登録完了 THEN トップページの会員数は自動的に増加 SHALL する |
+| **Firebase Auth & Firestore Security Rules** | 要件13 | WHERE システム THE SYSTEM SHALL Firebase AuthとFirestoreで適切な認証・認可・プライバシー保護を実装する |
 
 ### ユーザーストーリーカバレッジ
 
@@ -38,11 +43,20 @@
 **要件3-入会試験:** 入会希望者として、3択×10問の試験を受けて合格
 - **技術実装:** Client Componentで useState管理、全回答チェック、useRouterで遷移
 
-**要件4-会員登録:** 試験合格者として、必須情報を入力して会員登録完了
-- **技術実装:** Server Action + Zod validation + Firestore書き込み
+**要件4-メールアドレス登録:** 試験合格者として、メールアドレスを登録し、確認メールを受け取る
+- **技術実装:** Server Action + Firebase Auth メール送信 + Firestore トークン管理
 
-**要件5-会員証発行:** 登録完了者として、免許証風の会員証をPNG画像としてダウンロード
-- **技術実装:** Canvas API使用、深紺×金配色、会員情報埋め込み
+**要件5-メール確認・パスワード設定:** 確認メールからパスワードを設定し、認証を完了
+- **技術実装:** トークン検証 + Firebase Auth ユーザー作成 + パスワード設定フォーム
+
+**要件6-会員情報登録:** 認証完了者として、残りの会員情報を入力して会員登録完了
+- **技術実装:** Firebase Auth 状態確認 + Server Action + Zod validation + Firestore書き込み
+
+**要件7-ログイン:** 登録済み会員として、メールアドレスとパスワードでログイン
+- **技術実装:** Firebase Auth signInWithEmailAndPassword + リダイレクト
+
+**要件8-会員証発行:** 登録完了者として、免許証風の会員証をPNG画像としてダウンロード
+- **技術実装:** ログイン確認 + Canvas API使用、深紺×金配色、会員情報埋め込み
 
 ## アーキテクチャ
 
@@ -56,12 +70,16 @@ graph TB
 
     subgraph "プレゼンテーション層 - Next.js 15 App Router"
         SC[Server Components<br/>/, /about, /forecast, /articles]
-        CC[Client Components<br/>/join, /join/result, /member-card, /contact]
-        SA[Server Actions<br/>registerMember, getMemberCount]
+        CC[Client Components<br/>/join, /join/result, /auth/*, /login, /member-card, /contact]
+        SA[Server Actions<br/>sendVerificationEmail, registerMember, getMemberCount]
+    end
+
+    subgraph "認証層"
+        Auth[Firebase Authentication<br/>Email/Password]
     end
 
     subgraph "データ層"
-        Firestore[(Firebase Firestore<br/>members collection)]
+        Firestore[(Firebase Firestore<br/>members, emailVerificationTokens)]
         Static[Static Assets<br/>/public/forecast/*.png]
     end
 
@@ -73,7 +91,10 @@ graph TB
     Browser --> SC
     Browser --> CC
     CC --> SA
+    CC --> Auth
+    SA --> Auth
     SA --> Firestore
+    Auth --> Firestore
     SC --> Firestore
     SC --> Static
     GHA --> OpenMeteo
@@ -88,7 +109,7 @@ graph TB
 | **言語** | TypeScript | 5.x | 型安全性、開発効率向上、エラー早期発見 |
 | **スタイリング** | TailwindCSS | 3.x | ユーティリティファースト、カスタムカラー簡単設定、官公庁風デザイン実装容易 |
 | **データベース** | Firebase Firestore | 9.x | サーバーレス、リアルタイム同期、スケーラビリティ、セキュリティルール |
-| **認証** | なし | - | 初期段階は不要（将来拡張: Firebase Auth） |
+| **認証** | Firebase Authentication | 9.x | Email/Passwordサインイン、メール確認機能、セキュリティ管理 |
 | **画像生成** | Canvas API | - | ブラウザネイティブ、PNG出力、会員証デザイン自由度高 |
 | **バリデーション** | Zod | 3.x | 型安全バリデーション、Server Actionsとの統合容易 |
 | **フォーム管理** | React Hook Form | 7.x | パフォーマンス最適化、使いやすいAPI、Zodとの統合 |
@@ -131,8 +152,15 @@ sequenceDiagram
     participant User as ユーザー
     participant Exam as ExamPage<br/>(Client)
     participant Result as ResultPage<br/>(Client)
-    participant SA as Server Action<br/>registerMember
-    participant FS as Firestore<br/>members
+    participant SA1 as Server Action<br/>sendVerificationEmail
+    participant FS as Firestore<br/>emailVerificationTokens
+    participant Auth as Firebase Auth
+    participant Email as メールサーバー
+    participant Verify as VerifyEmailPage<br/>(Client)
+    participant SA2 as Server Action<br/>createAuthUser
+    participant Complete as CompleteRegistrationPage<br/>(Client)
+    participant SA3 as Server Action<br/>registerMember
+    participant FSMembers as Firestore<br/>members
     participant Card as MemberCardPage<br/>(Client)
     participant Canvas as Canvas API
 
@@ -141,18 +169,40 @@ sequenceDiagram
     User->>Exam: 全問回答
     Exam->>Exam: バリデーション
     Exam->>Result: /join/result へ遷移
-    Result->>User: 合格メッセージ + 登録フォーム表示
-    User->>Result: 必須項目入力
-    Result->>SA: registerMember(formData)
-    SA->>SA: Zod validation
-    SA->>SA: memberId生成 (JCHA-XXXXXX)
-    SA->>FS: members.create()
-    FS-->>SA: 成功
-    SA-->>Result: { success: true, memberId }
-    Result->>User: トースト通知 + 会員証発行ボタン表示
+    Result->>User: 合格メッセージ + メール入力フォーム表示
+    User->>Result: メールアドレス入力
+    Result->>SA1: sendVerificationEmail(email)
+    SA1->>SA1: トークン生成
+    SA1->>FS: トークン保存（24時間有効）
+    SA1->>Email: 確認メール送信
+    Email->>User: 確認メール受信
+    User->>Verify: メールリンククリック（/auth/verify-email?token=xxx）
+    Verify->>FS: トークン検証
+    FS-->>Verify: { valid: true, email }
+    Verify->>User: パスワード設定フォーム表示
+    User->>Verify: パスワード入力
+    Verify->>SA2: createAuthUser(email, password)
+    SA2->>Auth: createUserWithEmailAndPassword
+    Auth-->>SA2: { uid, email }
+    SA2->>FS: トークン削除
+    SA2-->>Verify: { success: true }
+    Verify->>Complete: /auth/complete へ遷移
+    Complete->>Auth: ログイン状態確認
+    Auth-->>Complete: { uid, email }
+    Complete->>User: 会員情報入力フォーム表示
+    User->>Complete: 名前・年齢・性別・髪質入力
+    Complete->>SA3: registerMember(uid, formData)
+    SA3->>SA3: Zod validation
+    SA3->>SA3: memberId生成 (JCHA-XXXXXX)
+    SA3->>FSMembers: members.create({ uid, ...formData })
+    FSMembers-->>SA3: 成功
+    SA3-->>Complete: { success: true, memberId }
+    Complete->>User: トースト通知 + 会員証発行ボタン表示
     User->>Card: /member-card へ遷移
-    Card->>FS: 会員情報取得
-    FS-->>Card: Member data
+    Card->>Auth: ログイン状態確認
+    Auth-->>Card: { uid }
+    Card->>FSMembers: uid で会員情報取得
+    FSMembers-->>Card: Member data
     Card->>Canvas: Canvas生成開始
     Canvas->>Canvas: 免許証風デザイン描画
     Canvas-->>Card: PNG画像生成

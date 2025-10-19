@@ -16,14 +16,15 @@ export default function DebugPage() {
       // テストデータで登録を試行
       const testData: MemberFormData = {
         name: 'テストユーザー',
-        email: `test-${Date.now()}@example.com`,
         age: 25,
         gender: '男性',
         hairType: 'くせ毛',
-        agreeToPrivacy: true,
       };
 
-      const result = await registerMember(testData);
+      // 注意: 新しい認証フローでは uid が必要です
+      // このテストは動作しません。実際の認証フローを使用してください
+      const testUid = 'test-uid-' + Date.now();
+      const result = await registerMember(testUid, testData);
 
       setTestResult(JSON.stringify(result, null, 2));
     } catch (error) {
@@ -98,11 +99,9 @@ export default function DebugPage() {
 function ManualTest() {
   const [formData, setFormData] = useState<MemberFormData>({
     name: '',
-    email: '',
     age: 0,
     gender: '男性',
     hairType: 'くせ毛',
-    agreeToPrivacy: false,
   });
   const [result, setResult] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -113,7 +112,9 @@ function ManualTest() {
     setResult('送信中...');
 
     try {
-      const res = await registerMember(formData);
+      // 注意: 新しい認証フローでは uid が必要です
+      const testUid = 'test-uid-' + Date.now();
+      const res = await registerMember(testUid, formData);
       setResult(JSON.stringify(res, null, 2));
     } catch (error) {
       setResult(`エラー: ${error instanceof Error ? error.message : String(error)}`);
@@ -136,17 +137,6 @@ function ManualTest() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">メール *</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg"
-            required
-          />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium mb-1">年齢 *</label>
           <input
             type="number"
@@ -155,18 +145,6 @@ function ManualTest() {
             className="w-full px-4 py-2 border rounded-lg"
             required
           />
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={formData.agreeToPrivacy}
-              onChange={(e) => setFormData({ ...formData, agreeToPrivacy: e.target.checked })}
-              className="accent-gold"
-            />
-            <span className="text-sm">プライバシーポリシーに同意</span>
-          </label>
         </div>
 
         <button

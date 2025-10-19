@@ -40,29 +40,51 @@
 
 #### 1.4 結果 /join/result
 
-- 合格メッセージ＋登録フォーム（必須）
-- 登録項目：名前（任意）、メール（必須）、年齢（必須、13–120）、性別（必須）、髪質（必須）、同意（必須）
-- Firestore members に INSERT
+- 合格メッセージ＋メールアドレス入力フォーム
+- 登録項目：メール（必須）、同意（必須）
+- メールアドレスに確認リンク送信
+- 確認リンククリック → /auth/verify-email?token=xxx
+
+#### 1.5 メール確認・パスワード設定 /auth/verify-email
+
+- トークン検証
+- パスワード設定フォーム（必須、8文字以上）
+- Firebase Authentication でユーザー作成
+- 成功後、/auth/complete へ遷移
+
+#### 1.6 会員登録完了 /auth/complete
+
+- ログイン状態確認
+- 登録フォーム表示
+- 登録項目：名前（任意）、年齢（必須、13–120）、性別（必須）、髪質（必須）
+- Firestore members に INSERT（認証UIDと紐付け）
 - 成功後、「会員証を発行する」ボタン表示 → /member-card
 
-#### 1.5 会員証 /member-card
+#### 1.7 会員証 /member-card
 
+- ログイン状態確認（未ログインは /login へリダイレクト）
 - Canvas で PNG ダウンロード
 - デザイン：免許証風（深紺 × 金）
 - 内容：協会エンブレム、氏名、会員番号（JCHA-6 桁）、発行日、髪質、有効期限「全ての髪型が祝福される日まで」
 - 注意書き：「この証明証は公的効力を有しません」
 
-#### 1.6 予報 /forecast
+#### 1.8 ログイン /login
+
+- メール・パスワードでログイン
+- Firebase Authentication使用
+- ログイン成功後、/member-card へリダイレクト
+
+#### 1.9 予報 /forecast
 
 - 最新マップ画像（毎朝更新）
 - アーカイブ（直近 7 日分）
 - 用語解説（湿度 / 露点 / 爆発指数）
 
-#### 1.7 記事 /articles
+#### 1.10 記事 /articles
 
 - ネタ記事の一覧＋詳細（静的 Markdown）
 
-#### 1.8 お問い合わせ /contact
+#### 1.11 お問い合わせ /contact
 
 - フォーム（送信 → 画面で完了表示）
 
@@ -70,21 +92,33 @@
 
 ```typescript
 interface Member {
+  uid: string; // Firebase Auth UID（必須）
   name: string | null; // 任意
-  email: string; // 必須（形式バリデーション）
+  email: string; // 必須（Firebase Auth から取得）
   age: number; // 必須（13–120）
   gender: "男性" | "女性" | "その他";
   hairType: "直毛" | "くせ毛" | "その他";
   memberId: string; // 例: JCHA-123456
   issuedAt: Timestamp; // 生成時サーバ時刻
+  createdAt: Timestamp; // 作成日時
+  updatedAt: Timestamp; // 更新日時
+}
+
+interface EmailVerificationToken {
+  email: string; // 確認待ちメールアドレス
+  token: string; // 確認トークン
+  expiresAt: Timestamp; // 有効期限（24時間）
+  createdAt: Timestamp; // 作成日時
 }
 ```
 
 ### 3. 技術スタック
 
-- フロント：Next.js（App Router or Pages）、TypeScript、TailwindCSS
-- ホスティング：Vercel
+- フロント：Next.js（App Router）、TypeScript、TailwindCSS
+- 認証：Firebase Authentication（Email/Password）
 - DB：Firebase Firestore
+- メール送信：Firebase Authentication（メール確認機能）
+- ホスティング：Vercel
 - 自動更新：GitHub Actions で毎朝 7:30 JST
 
 ### 4. デザイン要件
@@ -143,52 +177,98 @@ interface Member {
 6. WHEN ユーザーが送信ボタンをクリック THEN システムは必ず合格判定 SHALL する
 7. WHEN 試験送信完了 THEN システムは/join/result ページへ遷移 SHALL する
 
-### 要件 4: 会員登録機能
+### 要件 4: メールアドレス登録機能
 
-**ユーザーストーリー:** 試験合格者として、必須情報を入力して会員登録を完了し、会員証発行に進みたい
+**ユーザーストーリー:** 試験合格者として、メールアドレスを登録し、確認メールを受け取りたい
 
 #### 受け入れ基準
 
 1. WHERE 結果ページ（/join/result） THE SYSTEM SHALL 合格メッセージを表示する
-2. WHERE 結果ページ THE SYSTEM SHALL 会員登録フォームを表示する
-3. WHERE 登録フォーム THE SYSTEM SHALL 名前入力欄を任意項目として提供する
-4. WHERE 登録フォーム THE SYSTEM SHALL メールアドレス入力欄を必須項目として提供する
-5. WHERE 登録フォーム THE SYSTEM SHALL 年齢入力欄を必須項目として提供する（13〜120 の範囲）
-6. WHERE 登録フォーム THE SYSTEM SHALL 性別選択欄を必須項目として提供する（男性/女性/その他）
-7. WHERE 登録フォーム THE SYSTEM SHALL 髪質選択欄を必須項目として提供する（直毛/くせ毛/その他）
-8. WHERE 登録フォーム THE SYSTEM SHALL プライバシーポリシー同意チェックボックスを必須項目として提供する
-9. IF メールアドレスが RFC 準拠の形式でない THEN システムはメール欄下に赤字エラーメッセージを表示 SHALL する
-10. IF 年齢が 13 未満または 120 超過 THEN システムは年齢欄下に赤字エラーメッセージを表示 SHALL する
-11. IF 性別が未選択 THEN システムは性別欄下に赤字エラーメッセージを表示 SHALL する
-12. IF 髪質が未選択 THEN システムは髪質欄下に赤字エラーメッセージを表示 SHALL する
-13. IF プライバシーポリシー同意が未チェック THEN システムは送信ボタンを無効化 SHALL する
-14. WHEN ユーザーが「登録する」ボタンをクリック THEN システムは Firestore の members コレクションに新規ドキュメントを作成 SHALL する
-15. WHEN Firestore ドキュメント作成 THEN システムは以下のフィールドを保存 SHALL する：name（string|null）, email（string）, age（number）, gender（string）, hairType（string）, memberId（"JCHA-" + 6 桁ランダム数字）, issuedAt（Timestamp）
-16. WHILE フォーム送信処理中 THE SYSTEM SHALL 送信ボタンにローディング表示を継続する
-17. WHEN 登録成功 THEN システムはトースト通知で成功メッセージを表示 SHALL する
-18. WHEN 登録成功 THEN システムは「会員証を発行する」ボタンを表示 SHALL する
-19. WHEN 登録失敗 THEN システムはトースト通知でエラーメッセージを表示 SHALL する
-20. WHEN ユーザーが「会員証を発行する」ボタンをクリック THEN システムは/member-card ページへ遷移 SHALL する
+2. WHERE 結果ページ THE SYSTEM SHALL メールアドレス入力フォームを表示する
+3. WHERE 登録フォーム THE SYSTEM SHALL メールアドレス入力欄を必須項目として提供する
+4. WHERE 登録フォーム THE SYSTEM SHALL プライバシーポリシー同意チェックボックスを必須項目として提供する
+5. IF メールアドレスが RFC 準拠の形式でない THEN システムはメール欄下に赤字エラーメッセージを表示 SHALL する
+6. IF プライバシーポリシー同意が未チェック THEN システムは送信ボタンを無効化 SHALL する
+7. WHEN ユーザーが「確認メールを送信」ボタンをクリック THEN システムは Firestore の emailVerificationTokens コレクションに確認トークンを作成 SHALL する
+8. WHEN 確認トークン作成 THEN システムは確認メールを送信 SHALL する（Firebase Authentication のメール確認機能使用）
+9. WHEN メール送信成功 THEN システムはトースト通知で「確認メールを送信しました」メッセージを表示 SHALL する
+10. WHEN メール送信失敗 THEN システムはトースト通知でエラーメッセージを表示 SHALL する
 
-### 要件 5: 会員証発行機能
+### 要件 5: メール確認・パスワード設定機能
+
+**ユーザーストーリー:** 確認メールを受け取った登録希望者として、メールアドレスを確認し、パスワードを設定して認証を完了したい
+
+#### 受け入れ基準
+
+1. WHERE メール確認ページ（/auth/verify-email） THE SYSTEM SHALL URL クエリパラメータからトークンを取得 SHALL する
+2. WHEN ページロード THEN システムは Firestore の emailVerificationTokens コレクションからトークンを検証 SHALL する
+3. IF トークンが無効または期限切れ THEN システムはエラーメッセージを表示し、/join へのリンクを提供 SHALL する
+4. IF トークンが有効 THEN システムはパスワード設定フォームを表示 SHALL する
+5. WHERE パスワード設定フォーム THE SYSTEM SHALL パスワード入力欄を必須項目として提供する（8 文字以上）
+6. WHERE パスワード設定フォーム THE SYSTEM SHALL パスワード確認入力欄を必須項目として提供する
+7. IF パスワードが 8 文字未満 THEN システムはパスワード欄下に赤字エラーメッセージを表示 SHALL する
+8. IF パスワードと確認パスワードが一致しない THEN システムは確認パスワード欄下に赤字エラーメッセージを表示 SHALL する
+9. WHEN ユーザーが「パスワードを設定」ボタンをクリック THEN システムは Firebase Authentication でユーザーを作成 SHALL する
+10. WHEN ユーザー作成成功 THEN システムは emailVerificationTokens ドキュメントを削除 SHALL する
+11. WHEN ユーザー作成成功 THEN システムは/auth/complete ページへ遷移 SHALL する
+12. WHEN ユーザー作成失敗 THEN システムはトースト通知でエラーメッセージを表示 SHALL する
+
+### 要件 6: 会員情報登録機能
+
+**ユーザーストーリー:** 認証完了者として、残りの会員情報を入力して会員登録を完了し、会員証発行に進みたい
+
+#### 受け入れ基準
+
+1. WHERE 会員情報登録ページ（/auth/complete） THE SYSTEM SHALL ログイン状態を確認 SHALL する
+2. IF 未ログイン THEN システムは/login ページへリダイレクト SHALL する
+3. WHERE 登録フォーム THE SYSTEM SHALL 名前入力欄を任意項目として提供する
+4. WHERE 登録フォーム THE SYSTEM SHALL 年齢入力欄を必須項目として提供する（13〜120 の範囲）
+5. WHERE 登録フォーム THE SYSTEM SHALL 性別選択欄を必須項目として提供する（男性/女性/その他）
+6. WHERE 登録フォーム THE SYSTEM SHALL 髪質選択欄を必須項目として提供する（直毛/くせ毛/その他）
+7. IF 年齢が 13 未満または 120 超過 THEN システムは年齢欄下に赤字エラーメッセージを表示 SHALL する
+8. IF 性別が未選択 THEN システムは性別欄下に赤字エラーメッセージを表示 SHALL する
+9. IF 髪質が未選択 THEN システムは髪質欄下に赤字エラーメッセージを表示 SHALL する
+10. WHEN ユーザーが「登録する」ボタンをクリック THEN システムは Firestore の members コレクションに新規ドキュメントを作成 SHALL する
+11. WHEN Firestore ドキュメント作成 THEN システムは以下のフィールドを保存 SHALL する：uid（Firebase Auth UID）, name（string|null）, email（string）, age（number）, gender（string）, hairType（string）, memberId（"JCHA-" + 6 桁ランダム数字）, issuedAt（Timestamp）, createdAt（Timestamp）, updatedAt（Timestamp）
+12. WHILE フォーム送信処理中 THE SYSTEM SHALL 送信ボタンにローディング表示を継続する
+13. WHEN 登録成功 THEN システムはトースト通知で成功メッセージを表示 SHALL する
+14. WHEN 登録成功 THEN システムは「会員証を発行する」ボタンを表示 SHALL する
+15. WHEN 登録失敗 THEN システムはトースト通知でエラーメッセージを表示 SHALL する
+16. WHEN ユーザーが「会員証を発行する」ボタンをクリック THEN システムは/member-card ページへ遷移 SHALL する
+
+### 要件 7: ログイン機能
+
+**ユーザーストーリー:** 登録済み会員として、メールアドレスとパスワードでログインし、会員証を閲覧したい
+
+#### 受け入れ基準
+
+1. WHERE ログインページ（/login） THE SYSTEM SHALL メールアドレス入力欄を必須項目として提供する
+2. WHERE ログインページ THE SYSTEM SHALL パスワード入力欄を必須項目として提供する
+3. WHEN ユーザーが「ログイン」ボタンをクリック THEN システムは Firebase Authentication で認証 SHALL する
+4. WHEN 認証成功 THEN システムは/member-card ページへリダイレクト SHALL する
+5. WHEN 認証失敗 THEN システムはトースト通知でエラーメッセージを表示 SHALL する
+
+### 要件 8: 会員証発行機能
 
 **ユーザーストーリー:** 登録完了者として、免許証風の会員証を PNG 画像としてダウンロードし、SNS 等で共有したい
 
 #### 受け入れ基準
 
-1. WHERE 会員証ページ（/member-card） THE SYSTEM SHALL Canvas を使用して免許証風デザインの画像を生成する
-2. WHERE 会員証画像 THE SYSTEM SHALL 背景色に深紺（#0F172A）を使用する
-3. WHERE 会員証画像 THE SYSTEM SHALL アクセント色に金（#CDA349）を使用する
-4. WHERE 会員証画像の左上 THE SYSTEM SHALL 協会エンブレムをフルカラーで表示する
-5. WHERE 会員証画像の右側 THE SYSTEM SHALL 氏名・会員番号・発行日・髪質を同列・同トーンで表示する
-6. WHERE 会員証画像の顔写真枠 THE SYSTEM SHALL マスコット画像を表示する
-7. WHERE 会員証画像の中央 THE SYSTEM SHALL 透かしエンブレムを淡い色で表示する
-8. WHERE 会員証画像の下部 THE SYSTEM SHALL 注意書き「この証明証は公的効力を有しません」を表示する
-9. WHERE 会員証画像の有効期限欄 THE SYSTEM SHALL 「全ての髪型が祝福される日まで」を表示する
-10. WHEN 会員証ページロード THEN システムは登録済みの会員情報を取得 SHALL する
-11. WHEN ユーザーがダウンロードボタンをクリック THEN システムは会員証 PNG 画像をダウンロード SHALL する
+1. WHERE 会員証ページ（/member-card） THE SYSTEM SHALL ログイン状態を確認 SHALL する
+2. IF 未ログイン THEN システムは/login ページへリダイレクト SHALL する
+3. WHERE 会員証ページ THE SYSTEM SHALL Canvas を使用して免許証風デザインの画像を生成する
+4. WHERE 会員証画像 THE SYSTEM SHALL 背景色に深紺（#0F172A）を使用する
+5. WHERE 会員証画像 THE SYSTEM SHALL アクセント色に金（#CDA349）を使用する
+6. WHERE 会員証画像の左上 THE SYSTEM SHALL 協会エンブレムをフルカラーで表示する
+7. WHERE 会員証画像の右側 THE SYSTEM SHALL 氏名・会員番号・発行日・髪質を同列・同トーンで表示する
+8. WHERE 会員証画像の顔写真枠 THE SYSTEM SHALL マスコット画像を表示する
+9. WHERE 会員証画像の中央 THE SYSTEM SHALL 透かしエンブレムを淡い色で表示する
+10. WHERE 会員証画像の下部 THE SYSTEM SHALL 注意書き「この証明証は公的効力を有しません」を表示する
+11. WHERE 会員証画像の有効期限欄 THE SYSTEM SHALL 「全ての髪型が祝福される日まで」を表示する
+12. WHEN 会員証ページロード THEN システムは登録済みの会員情報を取得 SHALL する
+13. WHEN ユーザーがダウンロードボタンをクリック THEN システムは会員証 PNG 画像をダウンロード SHALL する
 
-### 要件 6: 天パ予報表示機能
+### 要件 9: 天パ予報表示機能
 
 **ユーザーストーリー:** 訪問者として、最新の天パ予報マップと過去のアーカイブを確認し、天パの状態を把握したい
 
@@ -200,7 +280,7 @@ interface Member {
 4. WHEN GitHub Actions が毎朝 7:30 JST に実行 THEN システムは新しい予報マップ画像を生成 SHALL する
 5. WHEN 新しい予報マップ生成 THEN システムは/public/forecast/latest.png を上書き SHALL する
 
-### 要件 7: 記事閲覧機能
+### 要件 10: 記事閲覧機能
 
 **ユーザーストーリー:** 訪問者として、協会が発信するネタ記事を読み、天パに関する情報を楽しみたい
 
@@ -210,7 +290,7 @@ interface Member {
 2. WHEN ユーザーが記事タイトルをクリック THEN システムは記事詳細ページを表示 SHALL する
 3. WHERE 記事詳細ページ THE SYSTEM SHALL 静的 Markdown 形式の記事コンテンツを表示する
 
-### 要件 8: お問い合わせ機能
+### 要件 11: お問い合わせ機能
 
 **ユーザーストーリー:** 訪問者として、協会に問い合わせ内容を送信し、確認メッセージを受け取りたい
 
@@ -220,7 +300,7 @@ interface Member {
 2. WHEN ユーザーが送信ボタンをクリック THEN システムは画面上で送信完了メッセージを表示 SHALL する
 3. WHERE お問い合わせページ THE SYSTEM SHALL メール送信機能は初期段階では実装しない（将来拡張）
 
-### 要件 9: データ整合性とパフォーマンス
+### 要件 12: データ整合性とパフォーマンス
 
 **ユーザーストーリー:** システム管理者として、会員データの整合性を保ち、リアルタイムで正確な会員数を表示したい
 
@@ -230,7 +310,7 @@ interface Member {
 2. WHERE Firestore THE SYSTEM SHALL members コレクションの件数をリアルタイムでカウントする
 3. IF 会員数表示のパフォーマンスが問題 THEN システムは集計ドキュメントを別途用意して最適化 SHALL する
 
-### 要件 10: セキュリティとプライバシー
+### 要件 13: セキュリティとプライバシー
 
 **ユーザーストーリー:** 会員として、個人情報が適切に保護され、プライバシーポリシーに基づいて管理されることを期待する
 

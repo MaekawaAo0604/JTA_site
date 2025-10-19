@@ -16,6 +16,12 @@ export default function ForgotPasswordPage() {
     setError(null);
     setIsSubmitting(true);
 
+    if (!auth) {
+      setError('Firebase認証が初期化されていません');
+      setIsSubmitting(false);
+      return;
+    }
+
     console.log('=== Password Reset Debug ===');
     console.log('Email:', email);
     console.log('Auth object:', auth);

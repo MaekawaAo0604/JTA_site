@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase/firestore';
  */
 export interface Member {
   id: string;
+  uid: string; // Firebase Auth UID
   name: string | null;
   email: string;
   age: number;
@@ -12,18 +13,53 @@ export interface Member {
   hairType: '直毛' | 'くせ毛' | 'その他';
   memberId: string;
   issuedAt: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 /**
- * 会員登録フォームデータ
+ * メール確認トークンデータモデル
+ */
+export interface EmailVerificationToken {
+  id: string;
+  email: string;
+  token: string;
+  expiresAt: Timestamp;
+  createdAt: Timestamp;
+}
+
+/**
+ * メールアドレス登録フォームデータ
+ */
+export interface EmailFormData {
+  email: string;
+  agreeToPrivacy: boolean;
+}
+
+/**
+ * パスワード設定フォームデータ
+ */
+export interface PasswordFormData {
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * 会員情報登録フォームデータ
  */
 export interface MemberFormData {
   name?: string;
-  email: string;
   age: number;
   gender: '男性' | '女性' | 'その他';
   hairType: '直毛' | 'くせ毛' | 'その他';
-  agreeToPrivacy: boolean;
+}
+
+/**
+ * ログインフォームデータ
+ */
+export interface LoginFormData {
+  email: string;
+  password: string;
 }
 
 /**
@@ -32,7 +68,6 @@ export interface MemberFormData {
 export interface RegisterMemberResult {
   success: boolean;
   memberId?: string;
-  initialPassword?: string;
   error?: string;
 }
 

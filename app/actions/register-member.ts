@@ -47,14 +47,16 @@ async function generateSequentialMemberId(): Promise<string> {
 }
 
 /**
- * 会員登録 Server Action
+ * 会員情報登録 Server Action（メール認証後）
+ * Firebase Auth UIDを受け取り、会員情報をFirestoreに保存
  */
 export async function registerMember(
+  uid: string,
   formData: MemberFormData
 ): Promise<RegisterMemberResult> {
   try {
     // 0. Firebase接続チェック
-    if (!db) {
+    if (!db || !auth) {
       console.error('Firebase Admin SDK is not initialized');
       return {
         success: false,
@@ -65,84 +67,71 @@ export async function registerMember(
     // 1. Zodバリデーション
     const validated = MemberFormSchema.parse(formData);
 
-    // 2. メール重複チェック
-    const emailSnapshot = await db
+    // 2. Firebase Auth から uid でユーザー情報取得
+    let userEmail: string;
+    try {
+      const userRecord = await auth.getUser(uid);
+      userEmail = userRecord.email || '';
+
+      if (!userEmail) {
+        return {
+          success: false,
+          error: '認証情報が見つかりません',
+        };
+      }
+    } catch (authError: any) {
+      console.error('Failed to get user by UID:', authError);
+      return {
+        success: false,
+        error: '認証情報の取得に失敗しました',
+      };
+    }
+
+    // 3. 既に会員登録済みかチェック
+    const existingMemberSnapshot = await db
       .collection('members')
-      .where('email', '==', validated.email)
+      .where('uid', '==', uid)
       .limit(1)
       .get();
 
-    if (!emailSnapshot.empty) {
+    if (!existingMemberSnapshot.empty) {
       return {
         success: false,
-        error: 'このメールアドレスは既に登録されています',
+        error: 'このアカウントは既に会員登録されています',
       };
     }
 
-    // 3. 会員番号生成
+    // 4. 会員番号生成
     const memberId = await generateSequentialMemberId();
-
-    // 4. Firebase Authユーザー作成（初期パスワード: 会員番号の下8桁）
-    const initialPassword = memberId.split('-')[1]; // JTA-00000001 → 00000001
-    let uid: string;
-
-    console.log('=== Firebase Auth User Creation Debug ===');
-    console.log('Attempting to create user with email:', validated.email);
-    console.log('Initial password:', initialPassword);
-    console.log('Display name:', validated.name || 'undefined');
-    console.log('Auth instance:', auth ? 'initialized' : 'null');
-
-    if (!auth) {
-      console.error('Firebase Auth is not initialized');
-      return {
-        success: false,
-        error: 'Firebase認証が初期化されていません',
-      };
-    }
-
-    try {
-      const userRecord = await auth.createUser({
-        email: validated.email,
-        password: initialPassword,
-        displayName: validated.name || undefined,
-      });
-      uid = userRecord.uid;
-      console.log('User created successfully with UID:', uid);
-    } catch (authError: any) {
-      console.error('Firebase Auth user creation failed:', authError);
-      console.error('Error code:', authError.code);
-      console.error('Error message:', authError.message);
-      console.error('Error details:', JSON.stringify(authError, null, 2));
-      return {
-        success: false,
-        error: `ユーザー作成に失敗しました: ${authError.message || authError.code || '不明なエラー'}`,
-      };
-    }
 
     // 5. Firestore members コレクションに保存
     await db.collection('members').add({
       uid,
       name: validated.name || null,
-      email: validated.email,
+      email: userEmail,
       age: validated.age,
       gender: validated.gender,
       hairType: validated.hairType,
       memberId,
-      agreeToPrivacy: validated.agreeToPrivacy,
-      agreeToPrivacyAt: new Date(),
       issuedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    // 6. 成功時（初期パスワードを返す）
+    console.log('Member registered successfully:', {
+      uid,
+      memberId,
+      email: userEmail,
+    });
+
+    // 6. 成功時
     return {
       success: true,
       memberId,
-      initialPassword,
     };
   } catch (error) {
     // エラーハンドリング
     if (error instanceof ZodError) {
-      // Zodエラーの詳細を返す
       const fieldErrors = error.issues.map((e) => ({
         field: e.path.join('.'),
         message: e.message,
@@ -155,20 +144,7 @@ export async function registerMember(
       };
     }
 
-    // 詳細なエラーログ
-    console.error('Registration error details:', {
-      errorName: error instanceof Error ? error.name : 'Unknown',
-      errorMessage: error instanceof Error ? error.message : String(error),
-      errorStack: error instanceof Error ? error.stack : undefined,
-      formData: {
-        email: formData.email,
-        hasName: !!formData.name,
-        age: formData.age,
-        gender: formData.gender,
-        hairType: formData.hairType,
-      },
-    });
-
+    console.error('Registration error:', error);
     return {
       success: false,
       error: `登録に失敗しました: ${error instanceof Error ? error.message : String(error)}`,

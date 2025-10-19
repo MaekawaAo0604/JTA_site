@@ -38,6 +38,7 @@ export async function getMemberById(
 
     return {
       id: doc.id,
+      uid: data.uid || '',
       name: data.name || null,
       email: data.email,
       age: data.age,
@@ -45,6 +46,8 @@ export async function getMemberById(
       hairType: data.hairType as '直毛' | 'くせ毛' | 'その他',
       memberId: data.memberId,
       issuedAt: data.issuedAt,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   } catch (error) {
     console.error('Get member error:', error);

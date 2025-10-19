@@ -1,20 +1,18 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase-client';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './firebase-client';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signIn: async () => {},
   logOut: async () => {},
 });
 
@@ -23,6 +21,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -31,38 +34,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
-    // ID トークンを取得してセッション Cookie を作成
-    const idToken = await userCredential.user.getIdToken();
-    
-    // Server Action でセッション Cookie を作成
-    const response = await fetch('/api/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('セッションの作成に失敗しました');
+  const logOut = async () => {
+    if (!auth) {
+      console.error('Firebase Auth is not initialized');
+      return;
+    }
+
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
     }
   };
 
-  const logOut = async () => {
-    await signOut(auth);
-    
-    // セッション Cookie を削除
-    await fetch('/api/session', {
-      method: 'DELETE',
-    });
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, logOut }}>
+    <AuthContext.Provider value={{ user, loading, logOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

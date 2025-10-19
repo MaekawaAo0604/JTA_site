@@ -63,7 +63,7 @@ tailwind.config.ts を以下の仕様で作成してください：
 
 #### 1.2 Firebase プロジェクト設定
 
-_Requirements: 要件 4, 9, 10（会員登録、データ整合性、セキュリティ）_
+_Requirements: 要件 4, 5, 6, 7, 12, 13（メール登録、認証、会員登録、ログイン、データ整合性、セキュリティ）_
 
 **プロンプト:**
 
@@ -73,19 +73,27 @@ Firebase プロジェクトの設定ファイルを作成してください：
 1. /lib/firebase.ts
    - Firebase Admin SDK初期化（サーバーサイド）
    - Firestore インスタンスエクスポート
+   - Firebase Auth インスタンスエクスポート
    - 環境変数使用: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 2. /lib/firebase-client.ts
    - Firebase Client SDK初期化（クライアントサイド）
    - Firestore インスタンスエクスポート
+   - Firebase Auth インスタンスエクスポート
    - 環境変数使用: NEXT_PUBLIC_FIREBASE_*
 
-3. .env.local.example
+3. /lib/auth-context.tsx
+   - Firebase Auth 状態管理用 Context Provider
+   - useAuth カスタムフック提供
+   - ログイン状態、ユーザー情報を管理
+
+4. .env.local.example
    - 必要な環境変数リスト（実際の値は含めない）
 
 注意:
 - Server Components用とClient Components用を分離
 - 環境変数は .gitignore に追加
+- Firebase Authentication Email/Password プロバイダを有効化
 ```
 
 ---
@@ -131,56 +139,133 @@ interface RegisterMemberResult {
 
 #### 2.1 Zod バリデーションスキーマ
 
-_Requirements: 要件 4（フォームバリデーション）_
+_Requirements: 要件 4, 5, 6（フォームバリデーション）_
 
 **プロンプト:**
 
 ```
 /lib/validation.ts を作成し、Zodスキーマを定義してください：
 
-MemberFormSchema:
-- name: optional string (trimmed)
+EmailFormSchema（メールアドレス登録用）:
 - email: string with RFC準拠メールバリデーション
+- agreeToPrivacy: boolean (must be true)
+
+PasswordFormSchema（パスワード設定用）:
+- password: string (min: 8文字)
+- confirmPassword: string
+- refine: password === confirmPassword
+
+MemberFormSchema（会員情報登録用）:
+- name: optional string (trimmed)
 - age: number (min: 13, max: 120)
 - gender: enum ["男性", "女性", "その他"]
 - hairType: enum ["直毛", "くせ毛", "その他"]
-- agreeToPrivacy: boolean (must be true)
+
+LoginFormSchema（ログイン用）:
+- email: string with RFC準拠メールバリデーション
+- password: string (min: 1)
 
 エラーメッセージは日本語で分かりやすく:
 - email: "有効なメールアドレスを入力してください"
 - age: "年齢は13歳から120歳の間で入力してください"
+- password: "パスワードは8文字以上である必要があります"
+- confirmPassword: "パスワードが一致しません"
 - agreeToPrivacy: "プライバシーポリシーに同意する必要があります"
 
+export const EmailFormSchema = z.object({...});
+export const PasswordFormSchema = z.object({...});
 export const MemberFormSchema = z.object({...});
+export const LoginFormSchema = z.object({...});
+export type EmailFormInput = z.infer<typeof EmailFormSchema>;
+export type PasswordFormInput = z.infer<typeof PasswordFormSchema>;
 export type MemberFormInput = z.infer<typeof MemberFormSchema>;
+export type LoginFormInput = z.infer<typeof LoginFormSchema>;
 ```
 
 ---
 
 ### フェーズ 3: Server Actions 実装
 
-#### 3. 会員登録 Server Action
+#### 3. メール確認送信 Server Action
 
-_Requirements: 要件 4（会員登録機能）_
+_Requirements: 要件 4（メールアドレス登録機能）_
+
+**プロンプト:**
+
+```
+/app/actions/send-verification-email.ts を作成し、以下の Server Action を実装してください：
+
+export async function sendVerificationEmail(formData: EmailFormData): Promise<{ success: boolean; error?: string }> {
+  'use server';
+
+  実装要件:
+  1. Zodバリデーション（EmailFormSchemaで検証）
+  2. メール重複チェック（Firebase Auth: fetchSignInMethodsForEmail）
+  3. トークン生成（crypto.randomUUID()）
+  4. Firestore emailVerificationTokens コレクションに保存:
+     - email, token, expiresAt (24時間後), createdAt
+  5. 確認メール送信（Firebase Auth のカスタムメールテンプレート使用）
+     - 確認リンク: https://your-domain.com/auth/verify-email?token={token}
+  6. エラーハンドリング:
+     - バリデーションエラー → { success: false, error: "バリデーションエラー" }
+     - メール重複 → { success: false, error: "このメールアドレスは既に登録されています" }
+     - メール送信エラー → { success: false, error: "メール送信に失敗しました" }
+  7. 成功時 → { success: true }
+
+注意:
+- 既存の未期限切れトークンがある場合は削除してから新規作成
+- Firebase Admin SDK を使用してメール送信
+```
+
+#### 3.1 認証ユーザー作成 Server Action
+
+_Requirements: 要件 5（メール確認・パスワード設定機能）_
+
+**プロンプト:**
+
+```
+/app/actions/create-auth-user.ts を作成し、以下の Server Action を実装してください：
+
+export async function createAuthUser(token: string, password: string): Promise<{ success: boolean; error?: string }> {
+  'use server';
+
+  実装要件:
+  1. Firestore emailVerificationTokens からトークン取得
+  2. トークン検証:
+     - 存在チェック
+     - 有効期限チェック（expiresAt > 現在時刻）
+  3. Firebase Auth でユーザー作成:
+     - createUserWithEmailAndPassword(email, password)
+  4. トークン削除（Firestore emailVerificationTokens から削除）
+  5. エラーハンドリング:
+     - トークン無効 → { success: false, error: "確認リンクが無効または期限切れです" }
+     - パスワード不正 → { success: false, error: "パスワードは8文字以上である必要があります" }
+     - ユーザー作成エラー → { success: false, error: "アカウント作成に失敗しました" }
+  6. 成功時 → { success: true }
+```
+
+#### 3.2 会員情報登録 Server Action
+
+_Requirements: 要件 6（会員情報登録機能）_
 
 **プロンプト:**
 
 ```
 /app/actions/register-member.ts を作成し、以下の Server Action を実装してください：
 
-export async function registerMember(formData: MemberFormData): Promise<RegisterMemberResult> {
+export async function registerMember(uid: string, formData: MemberFormData): Promise<RegisterMemberResult> {
   'use server';
 
   実装要件:
   1. Zodバリデーション（MemberFormSchemaで検証）
-  2. メール重複チェック（Firestore クエリ: where('email', '==', email)）
+  2. Firebase Auth から uid でユーザー情報取得（email）
   3. 会員番号生成（"JCHA-" + 6桁ランダム数字、ユニークチェック付き）
   4. Firestore members コレクションに保存:
-     - name, email, age, gender, hairType, memberId
-     - issuedAt: serverTimestamp()
+     - uid, name, email, age, gender, hairType, memberId
+     - issuedAt, createdAt, updatedAt: serverTimestamp()
   5. エラーハンドリング:
      - バリデーションエラー → { success: false, error: "バリデーションエラー" }
-     - メール重複 → { success: false, error: "このメールアドレスは既に登録されています" }
+     - ユーザー情報取得失敗 → { success: false, error: "認証情報が見つかりません" }
      - Firestore エラー → { success: false, error: "登録に失敗しました" }
   6. 成功時 → { success: true, memberId: "JCHA-123456" }
 
@@ -213,27 +298,54 @@ export async function getMemberCount(): Promise<number> {
 // return countDoc.data()?.count ?? 0;
 ```
 
-#### 3.2 会員情報取得 Server Action
+#### 3.3 会員情報取得 Server Action
 
-_Requirements: 要件 5（会員証発行）_
+_Requirements: 要件 8（会員証発行）_
 
 **プロンプト:**
 
 ```
 /app/actions/get-member.ts を作成してください：
 
-export async function getMemberById(memberId: string): Promise<Member | null> {
+export async function getMemberByUid(uid: string): Promise<Member | null> {
   'use server';
 
   実装要件:
-  1. Firestore クエリ: where('memberId', '==', memberId)
+  1. Firestore クエリ: where('uid', '==', uid)
   2. 見つかった場合、Member型として返す
   3. 見つからない場合、null を返す
   4. エラーハンドリング: エラー時は null を返す
 
 注意:
-- memberId は "JCHA-123456" 形式
+- uid は Firebase Auth UID
 - Timestamp は toDate() で Date型に変換
+```
+
+#### 3.4 ログイン Server Action
+
+_Requirements: 要件 7（ログイン機能）_
+
+**プロンプト:**
+
+```
+/app/actions/login.ts を作成してください：
+
+export async function login(formData: LoginFormData): Promise<{ success: boolean; error?: string }> {
+  'use server';
+
+  実装要件:
+  1. Zodバリデーション（LoginFormSchemaで検証）
+  2. Firebase Auth で認証:
+     - signInWithEmailAndPassword(email, password)
+  3. エラーハンドリング:
+     - バリデーションエラー → { success: false, error: "バリデーションエラー" }
+     - 認証失敗 → { success: false, error: "メールアドレスまたはパスワードが正しくありません" }
+  4. 成功時 → { success: true }
+
+注意:
+- クライアント側で Firebase Auth 状態を管理
+- Server Action はバリデーションのみ実施
+- 実際のログインはクライアント側で Firebase Auth SDK 使用
 ```
 
 ---
@@ -506,9 +618,9 @@ _Requirements: 要件 3（入会試験機能）_
 - 送信ボタン: btn-primary クラス
 ```
 
-#### 6.1 試験結果・登録フォームページ
+#### 6.1 試験結果・メール登録ページ
 
-_Requirements: 要件 4（会員登録機能）_
+_Requirements: 要件 4（メールアドレス登録機能）_
 
 **プロンプト:**
 
@@ -520,18 +632,14 @@ _Requirements: 要件 4（会員登録機能）_
 
 2. 合格メッセージ表示:
    - "おめでとうございます！合格です。"
-   - "会員登録を完了してください。"
+   - "会員登録を開始するには、メールアドレスを入力してください。"
 
 3. React Hook Form + Zod 統合:
-   - useForm<MemberFormInput>
-   - resolver: zodResolver(MemberFormSchema)
+   - useForm<EmailFormInput>
+   - resolver: zodResolver(EmailFormSchema)
 
 4. フォームフィールド:
-   - 名前 (optional, text)
    - メールアドレス (required, email)
-   - 年齢 (required, number, 13-120)
-   - 性別 (required, radio: 男性/女性/その他)
-   - 髪質 (required, radio: 直毛/くせ毛/その他)
    - プライバシーポリシー同意 (required, checkbox)
 
 5. エラー表示:
@@ -540,11 +648,10 @@ _Requirements: 要件 4（会員登録機能）_
 
 6. 送信処理:
    - ローディング状態管理（useState）
-   - registerMember Server Action 呼び出し
+   - sendVerificationEmail Server Action 呼び出し
    - 成功時:
-     - トースト通知（react-hot-toast）
-     - 「会員証を発行する」ボタン表示（state管理）
-     - クリック → /member-card?memberId=JCHA-123456
+     - トースト通知（react-hot-toast）: "確認メールを送信しました。メールをご確認ください。"
+     - 成功メッセージ表示（state管理）
    - 失敗時:
      - トースト通知でエラーメッセージ
 
@@ -557,9 +664,136 @@ package.json に追加:
 - 送信ボタン: ローディング時はスピナー表示
 ```
 
-#### 6.2 会員証発行ページ
+#### 6.2 メール確認・パスワード設定ページ
 
-_Requirements: 要件 5（会員証発行機能）_
+_Requirements: 要件 5（メール確認・パスワード設定機能）_
+
+**プロンプト:**
+
+```
+/app/auth/verify-email/page.tsx (Client Component) を作成してください：
+
+実装要件:
+1. 'use client' ディレクティブ
+
+2. トークン取得:
+   - useSearchParams() でクエリパラメータ token 取得
+   - token がない場合、エラーメッセージ表示＋/join へのリンク
+
+3. トークン検証:
+   - useEffect でマウント時に Server Action でトークン検証
+   - 無効・期限切れの場合、エラーメッセージ表示＋/join へのリンク
+   - 有効な場合、パスワード設定フォーム表示
+
+4. React Hook Form + Zod 統合:
+   - useForm<PasswordFormInput>
+   - resolver: zodResolver(PasswordFormSchema)
+
+5. フォームフィールド:
+   - パスワード (required, password, 8文字以上)
+   - パスワード確認 (required, password)
+
+6. エラー表示:
+   - 各フィールド下に赤字でエラーメッセージ
+
+7. 送信処理:
+   - ローディング状態管理（useState）
+   - createAuthUser Server Action 呼び出し
+   - 成功時:
+     - トースト通知: "アカウントが作成されました"
+     - /auth/complete へ遷移
+   - 失敗時:
+     - トースト通知でエラーメッセージ
+
+スタイル:
+- 官公庁風フォーム
+- 送信ボタン: ローディング時はスピナー表示
+```
+
+#### 6.3 会員情報登録ページ
+
+_Requirements: 要件 6（会員情報登録機能）_
+
+**プロンプト:**
+
+```
+/app/auth/complete/page.tsx (Client Component) を作成してください：
+
+実装要件:
+1. 'use client' ディレクティブ
+
+2. 認証状態確認:
+   - useAuth() でログイン状態取得
+   - 未ログインの場合、/login へリダイレクト
+
+3. React Hook Form + Zod 統合:
+   - useForm<MemberFormInput>
+   - resolver: zodResolver(MemberFormSchema)
+
+4. フォームフィールド:
+   - 名前 (optional, text)
+   - 年齢 (required, number, 13-120)
+   - 性別 (required, radio: 男性/女性/その他)
+   - 髪質 (required, radio: 直毛/くせ毛/その他)
+
+5. エラー表示:
+   - 各フィールド下に赤字でエラーメッセージ
+
+6. 送信処理:
+   - ローディング状態管理（useState）
+   - registerMember Server Action 呼び出し（uid を渡す）
+   - 成功時:
+     - トースト通知: "会員登録が完了しました"
+     - 「会員証を発行する」ボタン表示（state管理）
+     - クリック → /member-card
+   - 失敗時:
+     - トースト通知でエラーメッセージ
+
+スタイル:
+- 官公庁風フォーム
+- 送信ボタン: ローディング時はスピナー表示
+```
+
+#### 6.4 ログインページ
+
+_Requirements: 要件 7（ログイン機能）_
+
+**プロンプト:**
+
+```
+/app/login/page.tsx (Client Component) を作成してください：
+
+実装要件:
+1. 'use client' ディレクティブ
+
+2. React Hook Form + Zod 統合:
+   - useForm<LoginFormInput>
+   - resolver: zodResolver(LoginFormSchema)
+
+3. フォームフィールド:
+   - メールアドレス (required, email)
+   - パスワード (required, password)
+
+4. エラー表示:
+   - 各フィールド下に赤字でエラーメッセージ
+
+5. 送信処理:
+   - ローディング状態管理（useState）
+   - Firebase Auth signInWithEmailAndPassword 使用
+   - 成功時:
+     - トースト通知: "ログインしました"
+     - /member-card へリダイレクト
+   - 失敗時:
+     - トースト通知でエラーメッセージ
+
+スタイル:
+- 官公庁風フォーム
+- 送信ボタン: ローディング時はスピナー表示
+```
+
+#### 6.5 会員証発行ページ
+
+_Requirements: 要件 8（会員証発行機能）_
 
 **プロンプト:**
 
@@ -569,12 +803,12 @@ _Requirements: 要件 5（会員証発行機能）_
 実装要件:
 1. 'use client' ディレクティブ
 
-2. クエリパラメータから memberId 取得:
-   - useSearchParams() 使用
-   - memberId がない場合、エラー表示＋ホームへ戻るリンク
+2. 認証状態確認:
+   - useAuth() でログイン状態取得
+   - 未ログインの場合、/login へリダイレクト
 
 3. 会員情報取得:
-   - useEffect で getMemberById(memberId) 呼び出し
+   - useEffect で getMemberByUid(uid) 呼び出し
    - useState<Member | null> で状態管理
    - ローディング状態管理
 
@@ -605,9 +839,9 @@ _Requirements: 要件 5（会員証発行機能）_
 - ダウンロードボタン: btn-primary クラス
 ```
 
-#### 6.3 お問い合わせページ
+#### 6.6 お問い合わせページ
 
-_Requirements: 要件 8（お問い合わせ機能）_
+_Requirements: 要件 11（お問い合わせ機能）_
 
 **プロンプト:**
 
@@ -686,7 +920,7 @@ _Requirements: 要件 6（天パ予報表示機能 - 自動生成）_
 
 #### 7.1 GitHub Actions ワークフロー
 
-_Requirements: 要件 6（天パ予報表示機能 - cron 自動実行）_
+_Requirements: 要件 9（天パ予報表示機能 - cron 自動実行）_
 
 **プロンプト:**
 
@@ -723,7 +957,7 @@ _Requirements: 要件 6（天パ予報表示機能 - cron 自動実行）_
 
 #### 8. セキュリティルール実装
 
-_Requirements: 要件 10（セキュリティとプライバシー）_
+_Requirements: 要件 13（セキュリティとプライバシー）_
 
 **プロンプト:**
 
@@ -733,15 +967,22 @@ _Requirements: 要件 10（セキュリティとプライバシー）_
 実装要件:
 1. members コレクション:
    - read: 全ユーザー許可（会員数カウント用）
-   - create: 以下の条件を満たす場合のみ許可:
+   - create: 認証済みユーザーのみ、以下の条件を満たす場合のみ許可:
+     - request.auth.uid == request.resource.data.uid
      - age >= 13 && age <= 120
      - email が RFC準拠メール形式
      - gender が ["男性", "女性", "その他"] のいずれか
      - hairType が ["直毛", "くせ毛", "その他"] のいずれか
      - memberId が "JCHA-" で始まる
-   - update, delete: 不許可
+   - update: 自分のドキュメントのみ許可
+   - delete: 不許可
 
-2. aggregates コレクション（将来拡張用）:
+2. emailVerificationTokens コレクション:
+   - read: 全ユーザー許可（トークン検証用）
+   - create: 不許可（Server Actions のみ）
+   - update, delete: 不許可（Server Actions のみ）
+
+3. aggregates コレクション（将来拡張用）:
    - read: 全ユーザー許可
    - write: 不許可（Cloud Functions のみ）
 
@@ -749,12 +990,24 @@ _Requirements: 要件 10（セキュリティとプライバシー）_
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /members/{memberId} {
+    match /members/{docId} {
       allow read: if true;
-      allow create: if request.resource.data.age >= 13
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.uid
+                    && request.resource.data.age >= 13
                     && request.resource.data.age <= 120
-                    && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$');
-      allow update, delete: if false;
+                    && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+                    && request.resource.data.gender in ['男性', '女性', 'その他']
+                    && request.resource.data.hairType in ['直毛', 'くせ毛', 'その他']
+                    && request.resource.data.memberId.matches('^JCHA-[0-9]{6}$');
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.uid;
+      allow delete: if false;
+    }
+
+    match /emailVerificationTokens/{tokenId} {
+      allow read: if true;
+      allow write: if false;
     }
   }
 }
@@ -804,7 +1057,7 @@ package.json に追加:
 
 #### 9.1 E2E テスト
 
-_Requirements: 要件 3, 4, 5（入会試験、会員登録、会員証発行フロー）_
+_Requirements: 要件 3, 4, 5, 6, 7, 8（入会試験、メール登録、認証、会員登録、ログイン、会員証発行フロー）_
 
 **プロンプト:**
 
@@ -818,12 +1071,26 @@ _Requirements: 要件 3, 4, 5（入会試験、会員登録、会員証発行フ
      3. /join で10問すべてに回答
      4. 送信ボタンをクリック
      5. /join/result で合格メッセージ確認
-     6. 登録フォーム入力（すべて正常値）
+     6. メールアドレス入力フォーム入力
      7. 送信ボタンをクリック
-     8. 「会員証を発行する」ボタンが表示されることを確認
-     9. ボタンクリック
-     10. /member-card で会員証表示確認
-     11. Canvas要素が存在することを確認
+     8. 成功メッセージ確認
+     9. テスト用: Firestore から直接トークン取得
+     10. /auth/verify-email?token=xxx にアクセス
+     11. パスワード設定フォーム入力
+     12. 送信ボタンをクリック
+     13. /auth/complete で会員情報入力フォーム表示確認
+     14. 会員情報入力（すべて正常値）
+     15. 送信ボタンをクリック
+     16. 「会員証を発行する」ボタンが表示されることを確認
+     17. ボタンクリック
+     18. /member-card で会員証表示確認
+     19. Canvas要素が存在することを確認
+
+2. /e2e/login-flow.spec.ts
+   - テストシナリオ:
+     1. 既存アカウントでログイン
+     2. /member-card にアクセス
+     3. 会員証表示確認
 
 package.json に追加:
 - @playwright/test
@@ -831,6 +1098,7 @@ package.json に追加:
 playwright.config.ts を作成:
 - baseURL: 'http://localhost:3000'
 - testDir: './e2e'
+- use.storageState でログイン状態保持
 ```
 
 ---
@@ -839,7 +1107,7 @@ playwright.config.ts を作成:
 
 #### 10. パフォーマンス最適化
 
-_Requirements: 要件 9（パフォーマンス）_
+_Requirements: 要件 12（パフォーマンス）_
 
 **プロンプト:**
 
